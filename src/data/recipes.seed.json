@@ -1,0 +1,300 @@
+{
+  "_meta": {
+    "version": "1",
+    "source": "bloom_product.md §8–9 (números) · Figma 7:12 y DS v1.2 §7 (copy) · P-13 (propósitos de AeroPress)",
+    "updated": "2026-11-03"
+  },
+  "recipes": [
+    {
+      "id": "v60-base-v1",
+      "recipeId": "v60-base",
+      "number": 1,
+      "parentVersionId": null,
+      "status": "active",
+      "method": "v60",
+      "objective": null,
+      "coffeeId": null,
+      "source": "seed",
+      "seedVersion": "1",
+      "name": "V60 · receta base",
+      "params": {
+        "doseG": 15,
+        "waterG": 240,
+        "tempC": 92,
+        "grind": { "descriptor": "media-fina", "clicks": 18 },
+        "totalMinS": 160,
+        "totalMaxS": 180,
+        "warnings": [],
+        "steps": [
+          {
+            "id": "v60-prep",
+            "type": "prep",
+            "name": "Prepara",
+            "icon": "list-checks",
+            "instruction": "Enjuaga el filtro con agua caliente, descarta el agua y tara la báscula con el V60 encima.",
+            "purpose": null,
+            "technique": null,
+            "targetG": null,
+            "startS": null,
+            "endS": null,
+            "optional": false
+          },
+          {
+            "id": "v60-bloom",
+            "type": "pour",
+            "name": "Bloom",
+            "icon": "droplet",
+            "instruction": null,
+            "purpose": "Hidrata el café y libera el CO₂ del tueste. Sienta las bases de una extracción pareja y mejora el dulzor.",
+            "technique": "Vierte en espiral rápida y agita suavemente 3 veces.",
+            "targetG": 45,
+            "startS": 0,
+            "endS": 40,
+            "optional": false
+          },
+          {
+            "id": "v60-pour1",
+            "type": "pour",
+            "name": "Primer vertido",
+            "icon": "citrus",
+            "instruction": null,
+            "purpose": "Extrae los compuestos más solubles: acidez, notas frutales y el primer dulzor.",
+            "technique": "Espiral lenta desde el centro hacia afuera, sin tocar los bordes.",
+            "targetG": 140,
+            "startS": 45,
+            "endS": 70,
+            "optional": false
+          },
+          {
+            "id": "v60-pour2",
+            "type": "pour",
+            "name": "Segundo vertido",
+            "icon": "bean",
+            "instruction": null,
+            "purpose": "Desarrolla el cuerpo y el balance. Aquí aparece la profundidad de la taza.",
+            "technique": "Al centro, lento y constante.",
+            "targetG": 200,
+            "startS": 90,
+            "endS": 110,
+            "optional": false
+          },
+          {
+            "id": "v60-pour3",
+            "type": "pour",
+            "name": "Vertido final",
+            "icon": "sparkles",
+            "instruction": null,
+            "purpose": "Afina la concentración y el final. Determina la limpieza y la duración del retrogusto.",
+            "technique": "Espiral exterior sin agitar.",
+            "targetG": 240,
+            "startS": 130,
+            "endS": 150,
+            "optional": false
+          },
+          {
+            "id": "v60-wait",
+            "type": "wait",
+            "name": "Decantación",
+            "icon": "hourglass",
+            "instruction": null,
+            "purpose": "Deja que el café termine de pasar. No interrumpir da más claridad.",
+            "technique": "No añadas agua. Retira el dripper al terminar.",
+            "targetG": null,
+            "startS": 150,
+            "endS": 180,
+            "optional": false
+          }
+        ]
+      },
+      "traceability": {
+        "kind": "regla_tecnica",
+        "label": "Regla técnica — receta base de V60",
+        "status": "inferido",
+        "url": null,
+        "year": null,
+        "championRef": null
+      }
+    },
+    {
+      "id": "aeropress-base-v1",
+      "recipeId": "aeropress-base",
+      "number": 1,
+      "parentVersionId": null,
+      "status": "active",
+      "method": "aeropress",
+      "objective": null,
+      "coffeeId": null,
+      "source": "seed",
+      "seedVersion": "1",
+      "name": "AeroPress · receta base",
+      "params": {
+        "doseG": 15,
+        "waterG": 200,
+        "tempC": 88,
+        "grind": { "descriptor": "más fino que V60", "clicks": 14 },
+        "totalMinS": 120,
+        "totalMaxS": 140,
+        "warnings": [],
+        "steps": [
+          {
+            "id": "aero-prep",
+            "type": "prep",
+            "name": "Prepara",
+            "icon": "list-checks",
+            "instruction": "Coloca y enjuaga el filtro, arma la AeroPress en posición invertida y tara la báscula.",
+            "purpose": null,
+            "technique": null,
+            "targetG": null,
+            "startS": null,
+            "endS": null,
+            "optional": false
+          },
+          {
+            "id": "aero-bloom",
+            "type": "pour",
+            "name": "Bloom rápido",
+            "icon": "droplet",
+            "instruction": null,
+            "purpose": "Hidrata el café y libera el CO₂ del tueste. Sienta las bases de una extracción pareja y mejora el dulzor.",
+            "technique": "Agita 5 veces.",
+            "targetG": 30,
+            "startS": 0,
+            "endS": 20,
+            "optional": false
+          },
+          {
+            "id": "aero-pour",
+            "type": "pour",
+            "name": "Vertido principal",
+            "icon": "droplet",
+            "instruction": null,
+            "purpose": "Completa el agua y satura todo el café por igual. Agitar ahora reparte la extracción en toda la inmersión.",
+            "technique": "Agita 3 veces en cruz.",
+            "targetG": 200,
+            "startS": 30,
+            "endS": 50,
+            "optional": false
+          },
+          {
+            "id": "aero-wait",
+            "type": "wait",
+            "name": "Espera",
+            "icon": "hourglass",
+            "instruction": null,
+            "purpose": "Inmersión completa: el café extrae sin prisa. Este tiempo define cuánto cuerpo y dulzor tendrá la taza.",
+            "technique": "No agites. Espera hasta 1:30 total.",
+            "targetG": null,
+            "startS": 50,
+            "endS": 90,
+            "optional": false
+          },
+          {
+            "id": "aero-press",
+            "type": "press",
+            "name": "Presiona",
+            "icon": "gauge",
+            "instruction": null,
+            "purpose": "Separa el café del poso y cierra la extracción. Detenerte al primer silbido evita empujar aire a través del café.",
+            "technique": "30 s de presión pareja. Detente al primer silbido de aire.",
+            "targetG": null,
+            "startS": 90,
+            "endS": 120,
+            "optional": false
+          }
+        ]
+      },
+      "traceability": {
+        "kind": "regla_tecnica",
+        "label": "Regla técnica — receta base de AeroPress",
+        "status": "inferido",
+        "url": null,
+        "year": null,
+        "championRef": null
+      }
+    },
+    {
+      "id": "espresso-base-v1",
+      "recipeId": "espresso-base",
+      "number": 1,
+      "parentVersionId": null,
+      "status": "active",
+      "method": "espresso",
+      "objective": null,
+      "coffeeId": null,
+      "source": "seed",
+      "seedVersion": "1",
+      "name": "Espresso · receta base",
+      "params": {
+        "doseG": 18,
+        "waterG": 36,
+        "tempC": 93,
+        "grind": { "descriptor": "fino", "clicks": 8 },
+        "totalMinS": 27,
+        "totalMaxS": 32,
+        "warnings": ["Este punto de partida requiere calibración en tu máquina."],
+        "steps": [
+          {
+            "id": "esp-prep1",
+            "type": "prep",
+            "name": "Prepara",
+            "icon": "list-checks",
+            "instruction": "Purga la máquina 5 s.",
+            "purpose": null,
+            "technique": null,
+            "targetG": null,
+            "startS": null,
+            "endS": null,
+            "optional": false
+          },
+          {
+            "id": "esp-prep2",
+            "type": "prep",
+            "name": "Distribuye y tampea",
+            "icon": "list-checks",
+            "instruction": "Distribución pareja (WDT o golpecitos) y tamp recto (~15 kg).",
+            "purpose": null,
+            "technique": null,
+            "targetG": null,
+            "startS": null,
+            "endS": null,
+            "optional": false
+          },
+          {
+            "id": "esp-pre",
+            "type": "extract",
+            "name": "Pre-infusión",
+            "icon": "droplet",
+            "instruction": null,
+            "purpose": "Hidratación pareja del puck antes de la presión plena. Reduce canales y mejora uniformidad.",
+            "technique": "6–8 s a baja presión, si tu máquina lo permite.",
+            "targetG": null,
+            "startS": 0,
+            "endS": 8,
+            "optional": true
+          },
+          {
+            "id": "esp-ext",
+            "type": "extract",
+            "name": "Extracción",
+            "icon": "gauge",
+            "instruction": null,
+            "purpose": "La presión convierte la solubilidad del café en una bebida concentrada. El color del flujo indica el estado de la extracción.",
+            "technique": "Dorado pálido al final = correcto. Oscuro muy temprano = molienda muy gruesa. Goteo muy lento = molienda muy fina.",
+            "targetG": 36,
+            "startS": 8,
+            "endS": 32,
+            "optional": false
+          }
+        ]
+      },
+      "traceability": {
+        "kind": "regla_tecnica",
+        "label": "Regla técnica — receta base de espresso",
+        "status": "inferido",
+        "url": null,
+        "year": null,
+        "championRef": null
+      }
+    }
+  ]
+}

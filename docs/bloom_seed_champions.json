@@ -1,0 +1,77 @@
+{
+  "_meta": {
+    "version": "1.1",
+    "updated": "2026-11-02",
+    "rule": "Curado a mano. El LLM nunca agrega ni modifica filas. Toda fila tiene fuente. 'recipe_type' distingue la receta publicada por el ganador de una adaptación oficial.",
+    "official_sources": {
+      "WBC": "https://wcc.coffee",
+      "WBrC": "https://wcc.coffee/world-brewers-cup",
+      "WAC": "https://worldaeropresschampionship.com"
+    }
+  },
+  "world_barista_championship": [
+    { "year": 2019, "name": "Jooyeon Jeon", "country": "Corea del Sur", "city": "Boston", "method": "espresso", "status": "verificado", "source": "https://en.wikipedia.org/wiki/World_Barista_Championship" },
+    { "year": 2021, "name": "Diego Campos", "country": "Colombia", "city": "Milán", "method": "espresso", "status": "verificado", "source": "https://en.wikipedia.org/wiki/World_Barista_Championship" },
+    { "year": 2022, "name": "Anthony Douglas", "country": "Australia", "city": "Melbourne", "method": "espresso", "status": "verificado", "source": "https://en.wikipedia.org/wiki/World_Barista_Championship" },
+    { "year": 2023, "name": "Boram Um", "country": "Brasil", "city": "Atenas", "method": "espresso", "status": "verificado", "source": "https://en.wikipedia.org/wiki/World_Barista_Championship" },
+    { "year": 2024, "name": "Mikael Jasin", "country": "Indonesia", "city": "Busan", "method": "espresso", "status": "verificado", "source": "https://en.wikipedia.org/wiki/World_Barista_Championship" },
+    { "year": 2025, "name": "Jack Simpson", "country": "Australia", "city": "Milán", "method": "espresso", "status": "verificado", "source": "https://en.wikipedia.org/wiki/World_Barista_Championship" },
+    { "year": 2026, "name": "Pan Wei", "country": "China", "city": "Ciudad de Panamá", "method": "espresso", "status": "verificado", "source": "https://sprudge.com/pan-wei-of-china-is-the-2026-world-barista-champion-1523583.html" }
+  ],
+  "world_brewers_cup": [
+    { "year": 2016, "name": "Tetsu Kasuya", "country": "Japón", "city": null, "method": "v60", "technique": "Método 4:6", "status": "verificado", "note": "Referencia histórica: técnica vigente y documentada para V60.", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2019, "name": "Du Jianing", "country": "China", "city": "Boston", "method": null, "status": "verificado", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2021, "name": "Matt Winton", "country": "Suiza", "city": "Milán", "method": null, "status": "verificado", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2022, "name": "Sherry (Shih Yuan) Hsu", "country": "Taiwán", "city": "Melbourne", "method": null, "status": "verificado", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2023, "name": "Carlos Medina", "country": "Chile", "city": "Atenas", "method": null, "status": "verificado", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2024, "name": "Martin Wölfl", "country": "Austria", "city": "Chicago", "method": null, "status": "verificado", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2025, "name": "George Jinyang Peng", "country": "China", "city": "Jakarta", "method": null, "status": "verificado", "source": "https://grokipedia.com/page/World_Brewers_Cup" },
+    { "year": 2026, "name": "Nas Jaafar", "country": "Malasia", "city": "Bruselas", "method": null, "status": "verificado", "source": "https://wcc.coffee/latest-news/wbrc-winners" }
+  ],
+  "world_aeropress_championship": [
+    {
+      "year": 2019, "name": "Wendelien van Bunnik", "country": "Países Bajos", "method": "aeropress", "status": "verificado",
+      "recipe_type": "adaptacion_oficial",
+      "recipe": { "dose_g": 30, "style": "estándar", "brew_water_g": 100, "temp_c": 92, "bypass": "100–120 g de agua caliente", "steps": ["Vierte 100 g", "Revuelve ~10 veces en círculos", "Coloca el émbolo", "0:45 presiona suave", "Diluye con 100–120 g de agua caliente"] },
+      "source": "https://aeropress.com/blogs/w-a-c-aeropress-recipes/1st-wendelien-van-bunnik-the-netherlands-2019"
+    },
+    {
+      "year": 2021, "name": "Tuomas Merikanto", "country": "Finlandia", "method": "aeropress", "status": "verificado",
+      "recipe_type": null, "recipe": null,
+      "note": "aeropress.com solo publica una adaptación; no se carga hasta revisarla.",
+      "source": "https://aeropress.com/pages/championships"
+    },
+    {
+      "year": 2022, "name": "Jibbi Little", "country": "Australia", "method": "aeropress", "status": "verificado",
+      "recipe_type": "publicada_por_ganador",
+      "recipe": { "dose_g": 18, "style": "invertida", "brew_water_g": 94, "temp_c": 90, "bypass": "hasta 150 g con agua a 90 °C", "steps": ["Vierte 94 g", "Revuelve suave 35 veces", "1:20 tapa y saca el aire", "1:30 voltea y presiona hasta 2:10", "Diluye hasta 150 g"] },
+      "source": "https://worldaeropresschampionship.com/pages/1st-jibbi-little-australia-2022"
+    },
+    {
+      "year": 2023, "name": "Tay Wipvasutt", "country": "Tailandia", "method": "aeropress", "status": "verificado",
+      "recipe_type": "publicada_por_ganador",
+      "recipe": { "dose_g": 18, "style": "invertida", "brew_water_g": 100, "temp_c": 89, "bypass": "hasta 115 g con agua ambiente, luego hasta ~155 g con agua caliente", "steps": ["16 g de café, vierte hasta 100 g", "0:30 revuelve 5 s", "0:45 agrega 2 g de café", "0:55 revuelve 5 s", "Saca el aire y tapa", "1:35 voltea y presiona ~30 s hasta ~75 g", "Diluye a 115 g (ambiente) y ~155 g (caliente)"] },
+      "source": "https://worldaeropresschampionship.com/pages/1st-tay-wipvasutt-thailand-2023"
+    },
+    {
+      "year": 2024, "name": "George Stanica", "country": "Rumanía", "method": "aeropress", "status": "verificado",
+      "recipe_type": "publicada_por_ganador",
+      "recipe": { "dose_g": 18, "style": "invertida", "brew_water_g": 100, "temp_c": 96, "bypass": "hasta 130–135 g con agua caliente + 20–30 g de agua 0 ppm ambiente", "steps": ["Vierte ~50 g en 5–6 s", "Bloom ~30 s", "Vierte 50 g en 5–6 s", "Revuelve N-S-E-O 10 s", "1:20 tapa y saca el aire ~10 s", "1:35 presiona 30–40 s hasta 76–79 g", "Diluye a 130–135 g y agrega 20–30 g de agua ambiente"] },
+      "source": "https://worldaeropresschampionship.com/pages/1st-george-stanica-romania-2024"
+    },
+    {
+      "year": 2025, "name": "Némo Pop", "country": "Australia", "method": "aeropress", "status": "verificado",
+      "recipe_type": "publicada_por_ganador",
+      "recipe": { "dose_g": 18, "style": "estándar (sobre la jarra, con Flow Control Cap y 2 microfiltros)", "brew_water_g": 100, "temp_c": 84, "bypass": "70 g a 50 °C, en la jarra antes de empezar", "steps": ["70 g de bypass a 50 °C en la jarra", "Vierte 100 g y moja todo el café", "0:25 revuelve N-S-N-S / E-O-E-O", "0:50 presiona suave ~20 s"] },
+      "source": "https://aeropress.com/blogs/w-a-c-aeropress-recipes/1st-nemo-pop-australia-2025"
+    }
+  ],
+  "technical_references": [
+    { "name": "James Hoffmann", "credential": "World Barista Champion 2007", "relevance": "Metodología V60, fundamentos de extracción" },
+    { "name": "Matt Perger", "credential": "World Brewers Cup Champion 2012", "relevance": "Barista Hustle, ciencia del brew" },
+    { "name": "Scott Rao", "credential": "Autor técnico", "relevance": "Principios de extracción" },
+    { "name": "Peter Giuliano", "credential": "Specialty Coffee Association", "relevance": "Origen y sensorial" },
+    { "name": "Agnieszka Rojewska", "credential": "World Barista Champion 2018", "relevance": "Espresso" },
+    { "name": "Diego Campos", "credential": "World Barista Champion 2021", "relevance": "Espresso; primer campeón de un país productor latinoamericano" }
+  ]
+}

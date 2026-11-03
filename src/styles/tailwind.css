@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme inline {
+  /* Solo colores del DS */
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-photo: var(--surface-photo);
+  --color-inverse: var(--surface-inverse);
+  --color-orb: var(--orb);
+  --color-fg: var(--text-1);
+  --color-fg-2: var(--text-2);
+  --color-fg-3: var(--text-3);
+  --color-fg-disabled: var(--text-disabled);
+  --color-fg-inverse: var(--text-on-inverse);
+  --color-fg-inverse-2: var(--text-on-inverse-2);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-track: var(--track);
+  --color-accent: var(--accent);
+  --color-accent-pressed: var(--accent-pressed);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-scrim: var(--scrim);
+
+  /* Familias (sin referencia circular: tokens.css usa --font-ui / --font-num) */
+  --font-*: initial;
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-num);
+
+  /* Radios con nombres propios para no pisar los del DS */
+  --radius-*: initial;
+  --radius-thumb: var(--radius-xs);
+  --radius-chip: var(--radius-sm);
+  --radius-field: var(--radius-md);
+  --radius-tile: var(--radius-lg);
+  --radius-sheet: var(--radius-xl);
+  --radius-pill: var(--radius-full);
+}
