@@ -96,7 +96,8 @@ export function TopBar(props: TopBarProps) {
         {onBack ? <IconButton label="Volver" icon={ArrowLeft} variant="ghost" onClick={onBack} /> : null}
         {!onBack && onClose ? <IconButton label="Cerrar" icon={X} variant="ghost" onClick={onClose} /> : null}
       </div>
-      <h1 className="t-body truncate text-center font-semibold text-fg">{title}</h1>
+      {/* Sin título, la pantalla pone su propio h1 (perfil de café) */}
+      {title ? <h1 className="t-body truncate text-center font-semibold text-fg">{title}</h1> : <span />}
       <div className="flex justify-end">
         {action ?? (meta ? <span className="t-label text-fg-2">{meta}</span> : null)}
       </div>

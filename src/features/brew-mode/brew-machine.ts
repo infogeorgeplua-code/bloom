@@ -144,7 +144,7 @@ export function currentElapsed(s: BrewState, nowEpochMs: number): number {
 const ACTIVE: BrewStatus[] = ['prep', 'countdown', 'running', 'paused']
 
 function stepAnnouncement(step: RecipeStep): string {
-  return step.targetG ? `${step.name}. Vierte hasta ${step.targetG} gramos.` : step.name
+  return step.targetG ? `${step.name}. Vierte agua hasta ${step.targetG} gramos.` : step.name
 }
 
 /** Rebasa el reloj para que elapsed valga `targetElapsed` sin reescribir el pasado (nota NEXT_STEP). */

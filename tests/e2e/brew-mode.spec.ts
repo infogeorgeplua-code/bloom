@@ -38,7 +38,7 @@ test.describe('Brew Mode', () => {
     await expect(page.getByText('Primer paso: vierte 45 g de agua a 92 °C')).toBeVisible()
     await advance(page, 3)
     await expect(page.getByRole('heading', { name: 'Bloom' })).toBeVisible()
-    await expect(page.getByText('Vierte hasta', { exact: true })).toBeVisible()
+    await expect(page.getByText('Vierte agua hasta', { exact: true })).toBeVisible()
     await expect(page.getByText('Paso 2 de 6')).toBeVisible()
 
     // Últimos 3 s antes del vertido 1 (P-06)

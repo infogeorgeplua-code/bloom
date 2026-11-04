@@ -463,7 +463,7 @@ export function BrewSections() {
         </State>
       </Section>
 
-      <Section name="TimerRing" note="v1.2: sin ticks, 'Vierte hasta' sobre el número, línea de estado en crema debajo.">
+      <Section name="TimerRing" note="v1.2: sin ticks, 'Vierte agua hasta' sobre el número, línea de estado en crema debajo.">
         <State label="En vivo · vertido (ciclo de 20 s, reloj por timestamps)">
           <TimerRing
             mode="grams"

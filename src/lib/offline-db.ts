@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie'
 import type { Method, RecipeVersion } from '@/lib/schemas/recipe-seed'
+import type { BagRecord, CoffeeRecord, StockAdjustmentRecord } from '@/lib/schemas/coffee'
 import { SEED_VERSION, seedRecipes } from '@/lib/recipes'
 
 /** Brew en curso (SDD §3.4). Solo anclas: el tiempo se deriva, nunca se acumula. */
@@ -51,6 +52,9 @@ export class BloomDB extends Dexie {
   brewSessions!: Table<BrewSessionRecord, string>
   syncQueue!: Table<SyncOpRecord, number>
   meta!: Table<{ key: string; value: unknown }, string>
+  coffees!: Table<CoffeeRecord, string>
+  bags!: Table<BagRecord, string>
+  stockAdjustments!: Table<StockAdjustmentRecord, string>
 
   constructor(name = 'bloom') {
     super(name)
@@ -60,6 +64,15 @@ export class BloomDB extends Dexie {
       brewSessions: 'id, versionId, finishedAtEpochMs, syncState',
       syncQueue: '++seq, createdAtEpochMs',
       meta: 'key',
+    })
+    // v2 (fase 3, P-25): cafés, bolsas y ajustes de stock locales. Solo agrega stores e índices:
+    // las filas de v1 (recetas, brews, brew en curso) se conservan tal cual.
+    this.version(2).stores({
+      recipes: 'id, recipeId, method, source, coffeeId',
+      brewSessions: 'id, versionId, finishedAtEpochMs, syncState, coffeeId, bagId',
+      coffees: 'id, createdAtEpochMs',
+      bags: 'id, coffeeId, status',
+      stockAdjustments: 'id, bagId',
     })
   }
 }
@@ -82,7 +95,7 @@ export async function ensureSeed(db: BloomDB, nowEpochMs: number): Promise<void>
   await db.transaction('rw', db.recipes, db.meta, async () => {
     await db.recipes.bulkPut(seedRecipes().map((r) => ({ ...r, createdAtEpochMs: nowEpochMs })))
     await db.meta.put({ key: 'seedVersion', value: SEED_VERSION })
-    await db.meta.put({ key: 'schemaVersion', value: 1 })
+    await db.meta.put({ key: 'schemaVersion', value: 2 })
   })
 }
 

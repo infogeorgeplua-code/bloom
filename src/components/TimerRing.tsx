@@ -14,7 +14,7 @@ export interface TimerRingProps {
   /** Duración del paso, en ms */
   durationMs: number
   /**
-   * grams: "Vierte hasta" + meta de gramos (num-hero).
+   * grams: "Vierte agua hasta" + meta de gramos (num-hero).
    * time: "tiempo total" + tiempo (num-time), para pasos sin meta de gramos.
    */
   mode: 'grams' | 'time'
@@ -96,7 +96,7 @@ export function TimerRing({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="t-caption text-fg-3">{mode === 'grams' ? 'Vierte hasta' : 'tiempo total'}</span>
+          <span className="t-caption text-fg-3">{mode === 'grams' ? 'Vierte agua hasta' : 'tiempo total'}</span>
           {mode === 'grams' ? (
             <span className="flex items-baseline gap-1.5 text-fg">
               <span className="t-num-hero">{primary}</span>

@@ -30,7 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {/* El service worker solo en producción: en desarrollo cachearía código viejo */}
-        <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV !== 'production'}>
+        {/* reloadOnOnline apagado: recargar al volver la señal cortaría un brew en curso (Brew Mode no depende de la red) */}
+        <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV !== 'production'} reloadOnOnline={false}>
           <div className="app-shell">{children}</div>
         </SerwistProvider>
       </body>

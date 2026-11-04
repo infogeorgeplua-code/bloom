@@ -30,9 +30,9 @@ describe('TimerRing v1.2', () => {
     expect(progress(container)).toHaveAttribute('stroke-linecap', 'round')
   })
 
-  it('modo gramos: "Vierte hasta" encima del número en num-hero, sin "acumulado"', () => {
+  it('modo gramos: "Vierte agua hasta" encima del número en num-hero, sin "acumulado"', () => {
     render(<TimerRing mode="grams" elapsedMs={0} durationMs={1000} primary="45" />)
-    expect(screen.getByText('Vierte hasta')).toBeInTheDocument()
+    expect(screen.getByText('Vierte agua hasta')).toBeInTheDocument()
     expect(screen.getByText('45')).toHaveClass('t-num-hero')
     expect(screen.getByText('g')).toBeInTheDocument()
     expect(screen.queryByText(/acumulado/)).not.toBeInTheDocument()

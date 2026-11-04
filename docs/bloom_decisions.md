@@ -218,7 +218,7 @@ El motor es determinista y explicable (detalle en `bloom_product.md` §10). Apre
 |---|---|---|---|---|
 | P-01 | Qué es **Diario** | Ítem de nav deshabilitado | Definir contenido. Si es el historial de brews y evaluaciones, el modelo de datos ya lo soporta | Lo deja deshabilitado con `aria-label` |
 | P-02 | **"Blooming" vs "Bloom"** | El paso dice "Blooming"; la vista previa, "Bloom" | Un solo nombre: "Bloom" | Usa "Bloom" en ambos y deja `TODO(ds-pendiente): P-02` |
-| P-03 | **Crema en la barra del tile V60** | V60 en crema, AeroPress en blanco | Ambas en `--text-1`: crema solo significa "ahora" | Usa `--text-1` |
+| P-03 | **Crema en la barra del tile V60** (✅ resuelto 4 nov) | V60 en crema, AeroPress en blanco | Ambas en `--text-1`: crema solo significa "ahora" | Usa `--text-1` |
 | P-04 | **Señal de aprendizaje en Home** | Se quitó "Última taza / V2 lista" | Subtítulo del hero: "V60 · V4 lista · +0,5 °C" cuando hay propuesta | Implementa el subtítulo estándar y deja el estado listo para P-04 |
 | P-05 | **Datos del brew en el resumen** | Se quitaron "En tiempo" y "Stock: 145 → 130 g" | Línea `caption` bajo el tiempo: "En tiempo · meta 2:40 – 3:00" (+ stock desde fase 5) | Implementa Figma; deja el slot preparado |
 | P-06 | **Estado "últimos 3 s"** | El frame 06 repite Bloom con datos mezclados | Línea de tiempo restante: "Cambia en 3 s" + vibración corta | Implementa la propuesta (es comportamiento, no estética) |
@@ -246,16 +246,17 @@ Los pendientes P-09 a P-16 venían del log v1.0 (antes numerados P-01 a P-08, ha
 | P-11 | **`stock_adjustments` y FKs** | Tech §4 dice que el ajuste manual es "un evento más", pero §3 no tiene tabla; un FK ignora RLS | Tabla `stock_adjustments`, FKs compuestas `(id, user_id)` (SDD §3.6) | Nada hasta la fase 5 | Fase 5 |
 | P-12 | **Rutas medidas por Lighthouse** | DS §9.4 pide Home, Brew Mode y Perfil de café; en la fase 1 solo existe `/ds` | Medir cada ruta cuando exista | Mide `/ds` | No |
 | P-13 | **Propósitos de AeroPress** (✅ resuelto, ver abajo) | Product §8–9 no define el propósito de "Vertido principal", "Espera" ni "Presiona" | George escribe los 3 textos | Los deja `null` y `InfoList` omite la fila | No |
-| P-14 | **Tablas numéricas del motor de recetas** | Product §11 da dirección y límites, no valores por objetivo, tueste, proceso, variedad, altitud ni agua | Claude propone valores en el plan de la fase 3 y George confirma | Nada hasta la fase 3 | Fase 3 |
+| P-14 | **Tablas numéricas del motor de recetas** (propuesta abajo, por confirmar) | Product §11 da dirección y límites, no valores por objetivo, tueste, proceso, variedad, altitud ni agua | Claude propone valores en el plan de la fase 3 y George confirma | Nada hasta la fase 3 | Fase 3 |
 | P-15 | **Tema claro sin `--danger`/`--warning`** | Con los valores del tema oscuro no llegan a 4,5:1 sobre `#FAFAF7` (axe lo marca) | Agregar ambos tokens al tema claro del DS | El e2e del tema claro omite solo `color-contrast` | Antes de activar "Automático" |
 | P-16 | **`eslint-plugin-jsx-a11y` y ESLint 10** | El plugin declara peer `eslint ≤ 9`; instalarlo suelto falla | Usar el que trae `eslint-config-next` (hecho) o fijar ESLint 9 | Usa el de `eslint-config-next` | No |
-| P-17 | **Ícono de Diario** | Figma 01 usa el matraz (`flask-conical`) de Lab; DS §2.8 dice `notebook` | `notebook`: Diario ya no es Lab | Usa `notebook` | No |
+| P-17 | **Ícono de Diario** (✅ resuelto 4 nov) | Figma 01 usa el matraz (`flask-conical`) de Lab; DS §2.8 dice `notebook` | `notebook`: Diario ya no es Lab | Usa `notebook` | No |
 | P-18 | **Colores sobre el sheet claro** | Figma 09 usa un botón "Oscuro" y un verde "success-light" que no existen como variante de `Button` ni como token | Dentro de una superficie inversa los tokens semánticos se invierten (`.inverse-scope`), así `primary` se ve oscuro y `--success` usa `green-700` | Usa `.inverse-scope` en `BrewSummarySheet` | No |
 | P-20 | **Ventanas de la receta V60** | Figma 02 muestra ventanas contiguas (Bloom 0:00–0:45, Primer vertido 0:45–1:30, Segundo 1:30–2:10, Final 2:10–2:40, Decantación 2:40–3:00); product §9 da 0:00–0:40, 0:45–1:10, 1:30–1:50, 2:10–2:30 y "hasta 3:00" con huecos entre pasos | ✅ **Resuelto por George (3 nov 2026): mandan las ventanas de product §9.** Figma 02 debe actualizar los textos de `StepRow` | Seed y `/ds` usan product §9; entre ventanas se mantiene el estado "Siguiente en N s" (SDD S-04) | No (resuelto) |
 | P-21 | **Tamaños de Figma sin token** | Botón xl con texto de 18 px; gramos de `ListRow` en mono 14 px; barras con radio 2 y 4 px; orb de pausa de 180 px (DS: 160); columna de `InfoList` de 52 px, donde "PROPÓSITO" no cabe (se usa 72 px) | Agregar tokens o ajustar Figma a `button` 16, `body` 15 y `radius-xs/2` | Usa el token más cercano con `TODO(ds-pendiente): P-21` | No |
 | P-22 | **`StepTimeline` sin barra ni número** | DS §3.20 pide número de paso y barra vertical de 1,5 px; Figma 02 (`StepRow`) usa filas de 56 px con divisor, sin barra ni número | Actualizar DS §3.20 a la anatomía de Figma | Sigue Figma (D-14) | No |
 | P-23 | **Serwist con Turbopack** (✅ resuelto, ver abajo) | Tech §1 pide `@serwist/next`, que según su documentación es solo para webpack; Next 16.4 compila con Turbopack por defecto (visto en la fase 1) | Usar `@serwist/turbopack` 9.5.13 (+ `esbuild` 0.28.2 como dependencia de desarrollo), que sirve el service worker desde un route handler. Alternativa: mantener `@serwist/next` y compilar con `next build --webpack` | Nada hasta la aprobación | Fase 2 |
 | P-24 | **PWA en el teléfono necesita HTTPS** (✅ resuelto, ver abajo) | El service worker y la instalación solo funcionan en contexto seguro (HTTPS o `localhost`); `http://192.168.1.104` no sirve para la prueba de 7 días | Desplegar en Vercel (Hobby) con la URL protegida; alternativa: depurar por USB con `chrome://inspect` (reenvío de puerto a `localhost`) | Nada hasta la aprobación | Cierre de la fase 2 |
+| P-25 | **Inventario antes del backend** (✅ resuelto, ver abajo) | Figma 01 muestra Stock y gramos en "Cafés recientes"; tech §0 pone bolsas y stock en la fase 5 | Inventario local en IndexedDB desde la fase 3; la fase 5 lo sincroniza | Nada hasta la aprobación | Fase 3 |
 | P-19 | **Sección de componentes de Figma desactualizada** | `6:2` todavía muestra "Mis cafés", "Lab · PRONTO" y `ListRow` con `StockMeter` | Actualizar `6:2` a v1.2 | Sigue el DS v1.2 y el frame 01 | No |
 
 ### Resueltos por George (3 nov 2026, arranque de la fase 2)
@@ -268,3 +269,43 @@ Los pendientes P-09 a P-16 venían del log v1.0 (antes numerados P-01 a P-08, ha
 | P-24 | La app se publica en Vercel; George compra un dominio. Mientras tanto se usa la URL de Vercel. |
 | P-08 (parcial) | El ícono de la app y el wordmark del Home salen del logo PNG de George (`logo bloom`), recortados y con fondo transparente. Sigue pendiente el SVG. |
 | Fase 2 | "Tu café habitual": "Prepara tu primer café" hasta el primer brew; luego, la última receta usada. Sonido fuera de la fase 2. Sin Sentry. |
+
+### Resueltos por George (4 nov 2026, arranque de la fase 3)
+
+| # | Resolución |
+|---|---|
+| P-03 | La barra del tile de método **no usa crema**. Usa otro color del DS: el método más usado en `--text-1`, el segundo en `--text-2`. Crema sigue reservado a "ahora" (DS §2.1). |
+| P-17 | Diario usa su propio ícono (`notebook`, DS §2.8), no el matraz de Lab. |
+| P-25 | **Inventario local adelantado a la fase 3.** Bolsas, gramos y alertas (D-09) viven en IndexedDB desde la fase 3: el tile Stock, los gramos de "Cafés recientes" y el descuento por brew funcionan sin backend. En la fase 5 el mismo modelo se sube a Supabase (`bags`, `stock_adjustments`, vista `bag_stock`) con la sync idempotente; no cambia la lógica. |
+| Fase 3 | Arranca en paralelo a los 7 días de uso de la fase 2 (que se cierra con su checklist). Las pantallas sin frame en Figma ("Tengo un café nuevo", Stock, perfil de café, Hacer café, Setup) las diseña Claude con componentes y patrones del DS. |
+| Home | El contenido de Figma 01 es demo: "Tu café habitual" lo elige el sistema (regla en SDD §5.9), nunca un nombre fijo. |
+| Molino | George usa un **LEBURRY** eléctrico de muelas cónicas, **38 posiciones** (1 = más fina). Rangos del fabricante (descripción del producto): espresso 1–5, moka 5–10, pour-over 10–20, prensa francesa 20–28, cold brew 28–38. AeroPress no aparece: se infiere entre moka y pour-over (8–14, `inferido`). [Ficha en Amazon](https://www.amazon.com/dp/B0D6QY9KFC) · [descripción con rangos](https://pacifiko.com/compras-en-linea/leburry-burr-coffee-grinder-portable-espresso-grinder-with-stainless-steel-conical-mill-for-travel-camping-cordless-rechargeable-electric-coffee-bean-grinders-with-38-adjustable-grind-settings-color-black&pid=ZDFiOGNhYm). |
+| P-08 | El logo SVG se pide al final del proyecto; mientras tanto sigue el PNG recortado. |
+
+### P-14 · Propuesta de tablas del motor de recetas (fase 3 · **por confirmar con George**)
+
+Valores iniciales escritos por Claude a partir de la dirección y los límites de product §11. Viven en un solo archivo (`src/features/recipes/engine-tables.ts`), cada fila tiene test y cambiar un número no toca la lógica. Si George no está de acuerdo con alguno, se cambia ahí.
+
+**Objetivo de la taza** (máximo 2 variables por objetivo, product §11):
+
+| Objetivo | Variable 1 | Variable 2 |
+|---|---|---|
+| Equilibrado | — | — |
+| Dulce | +1 °C | molienda 1 paso más fina |
+| Brillante | −1 °C | bloom 5 s más corto (V60, AeroPress); espresso solo temperatura |
+| Con cuerpo | molienda 1 paso más gruesa (product §11, literal) | técnica: más agitación en los vertidos |
+| Claridad máxima | ratio +1 (espresso +0,5) | técnica: vertidos lentos y al centro |
+| Para alguien más | preferencia → objetivo: dulce→Dulce · intenso→Con cuerpo · floral→Brillante · suave→Equilibrado · sorpréndeme→Dulce (product §11: "dulzor prioritario") | |
+
+**Ajustes por café** (se suman al objetivo; temperatura final acotada a 80–100 °C y redondeada a 0,5):
+
+| Tabla | Valores |
+|---|---|
+| Tueste → °C | claro +1 · medio 0 · medio-oscuro −1 · oscuro −2 |
+| Proceso → °C | lavado 0 · honey 0 · natural −1 · anaeróbico −1 · otro 0 |
+| Altitud del cultivo → °C | ≥ 1800 m +1 · 1200–1799 m 0 · < 1200 m −1 |
+| Días desde el tueste | filtrado: < 7 reposo · 7–21 ideal · > 21 pasado; espresso: < 14 · 14–30 · > 30. Solo aviso, no mueve números |
+| Altitud donde preparas | el agua hierve a ≈ 100 − altitud/300 °C: la temperatura se limita a 1 °C bajo ese punto (física, no gusto) |
+| Variedad · perfil de agua | **sin efecto en V1**: no hay datos confiables para una tabla; se guardan para fases futuras |
+
+**Molienda:** con molino configurado, clicks = punto de partida del método (Setup) ± pasos del objetivo; en el LEBURRY 1 paso = 2 posiciones y el punto de partida es V60 15 · AeroPress 11 · espresso 3, acotado a 1–38. Sin molino, solo el descriptor ("media-fina, un poco más fina").

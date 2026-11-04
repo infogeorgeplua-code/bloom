@@ -575,14 +575,14 @@ wcc.coffee ↗
 Componente central del Brew Mode (solo en pasos con tiempo).
 
 ```
-           Vierte hasta            ← caption --text-3
+           Vierte agua hasta            ← caption --text-3
             45  g                  ← num-hero + "g" en title
     (anillo: track 2 px, progreso 4 px crema, sin ticks)
 ```
 - Diámetro 300 px (`min(78vw, 300px)`).
 - Track 2 px `--track`. Progreso 4 px `--accent`, `stroke-linecap: round`, arranca a las 12 y avanza en sentido horario en `ease-linear`, con tiempo real.
 - **Sin ticks** (v1.2: se quitaron en Figma; el anillo queda más limpio).
-- **Centro, paso con meta de gramos:** `caption` "Vierte hasta" **encima** del número (la instrucción se lee antes que el dato) + `num-hero` + unidad en `title`. Ya no lleva "acumulado de 240 g": el total aparece en la vista previa y en "Después".
+- **Centro, paso con meta de gramos:** `caption` "Vierte agua hasta" **encima** del número (la instrucción se lee antes que el dato) + `num-hero` + unidad en `title`. Ya no lleva "acumulado de 240 g": el total aparece en la vista previa y en "Después".
 - **Centro, paso sin meta de gramos** (espera, decantación, presión): `caption` "tiempo total" encima + `num-time` (80).
 - **Debajo del anillo:** tiempo restante del paso en `title` **crema**, centrado: "31 s restantes".
 - **Últimos 3 s** de un paso que avanza solo: la línea de tiempo restante cambia a "Cambia en 3 s" (y luego 2, 1) y el teléfono vibra `[40]`. ⏳ **P-06:** el frame 06 de Figma hoy repite el estado de Bloom (0:14, 31 s, 140 g); hace falta dibujar este estado.
@@ -792,7 +792,7 @@ StepTimeline (6 pasos, el 1 es preparación)
 │        ●●○○○○  PASO 2 DE 6         │  ProgressDots centrado
 │          (droplet) Bloom           │  título centrado, title-lg
 │        ╭──────────────╮            │
-│       │  Vierte hasta  │           │  TimerRing v1.2
+│       │  Vierte agua hasta  │           │  TimerRing v1.2
 │       │      45 g      │           │
 │        ╰──────────────╯            │
 │         31 s restantes             │  title, crema
@@ -905,7 +905,7 @@ Basado en tus últimas 3 tazas de este café    caption text-3
 
 | Regla | ✅ | ❌ |
 |---|---|---|
-| Verbos en imperativo amable | "Vierte hasta 140 g" | "Usted debe verter…" |
+| Verbos en imperativo amable | "Vierte agua hasta 140 g" | "Usted debe verter…" |
 | El dato primero | "45 g · 40 s" | "Durante cuarenta segundos vierte cuarenta y cinco gramos" |
 | Explica el porqué en una frase | "Baja 1 °C: reduce el amargor sin perder cuerpo." | "Ajuste aplicado." |
 | Honestidad del dato | "Inferido por el tueste" | Presentar inferencias como hechos |
@@ -932,7 +932,7 @@ Basado en tus últimas 3 tazas de este café    caption text-3
 | Home · tiles | STOCK · "145 g" · "5 cafés en stock" — ESTE MES · "20 cafés" — V60 · "12 brews" · "60% del mes" |
 | Nav | Inicio · Stock · Hacer café · Diario · Setup |
 | Cuenta regresiva | EMPIEZA EN · 3 · "Primer paso: vierte 45 g de agua a 92 °C" (Figma dice "vertir 45 gr": corregido) |
-| Paso con tiempo | "Vierte hasta" (sobre el número) · "31 s restantes" · PROPÓSITO / TÉCNICA / DESPUÉS · "Primer vertido → 140 g de agua" |
+| Paso con tiempo | "Vierte agua hasta" (sobre el número) · "31 s restantes" · PROPÓSITO / TÉCNICA / DESPUÉS · "Primer vertido → 140 g de agua" |
 | Decantación | Técnica: "No añadas agua. Retira el dripper al terminar." · Botón: **Terminar brew** |
 | Pausado | "El timer está congelado" + paso actual |
 | Fin | "Tu café está listo" · TIEMPO TOTAL · Café / Agua / Temp. · **Evaluar receta** · Más tarde |
@@ -1147,7 +1147,7 @@ El espaciado usa la escala por defecto de Tailwind v4 (base 4 px), que coincide 
 - Figma pasa a ser la fuente visual (§0, §12). Este documento queda para tokens y reglas.
 - **Home:** barra con logotipo, fecha centrada y hairline; título "¿Qué preparamos?"; hero con ilustración del método (`CoffeeHero` §3.29); tiles nuevos: Stock total, Este mes, y uso por método (V60 / AeroPress); se quitan Tueste y Última taza.
 - **Nav:** "Mis cafés" → **Stock**; "Lab" → **Diario**.
-- **Brew Mode:** barra `brew` con ✕ a la derecha y tiempo centrado; bloque superior centrado; `TimerRing` sin ticks y con "Vierte hasta" sobre el número; tiempo restante en crema; nuevo `InfoList` (Propósito / Técnica / Después).
+- **Brew Mode:** barra `brew` con ✕ a la derecha y tiempo centrado; bloque superior centrado; `TimerRing` sin ticks y con "Vierte agua hasta" sobre el número; tiempo restante en crema; nuevo `InfoList` (Propósito / Técnica / Después).
 - **Último paso:** botón "Terminar brew". **Fin:** `BrewSummarySheet` con "Tu café está listo", tiempo total y `StatRow`; CTA "Evaluar receta".
 - **Tipografía:** nuevos `num-countdown`, `num-time`, `num-window`, `num-sm`, `title-md`. Mínimo 11 px.
 - **Componentes nuevos:** `InfoList`, `MethodIllustration`, `StatRow`, `CoffeeHero`; variantes de `Tile` (`meter`, `orb`, `bar`) y de `TopBar` (`home`, `flow`, `brew`).

@@ -683,6 +683,16 @@ export function formatShare(share: number): string                           // 
 - Reglas de presentación (DS §4.1): sin brews en el mes → no se muestra la fila de métodos; con 1 método → su tile + un tile vacío (⏳ por diseñar, `TODO(ds-pendiente)`).
 - `BrewSessionRecord` (§3.2) suma el campo `method` (copiado de la receta al terminar) para que la consulta no tenga que unir con `recipes`.
 
+### 5.9 Biblioteca, inventario local y café habitual (fase 3, P-25)
+
+Dexie **v2** agrega `coffees`, `bags` y `stockAdjustments` (y los índices `recipes.coffeeId`, `brewSessions.coffeeId/bagId`); la migración solo agrega stores y conserva las filas de v1 (test en `library-db.test.ts`). Esquemas Zod en `lib/schemas/coffee.ts`; persistencia en `lib/library-db.ts`; lógica pura en `features/inventory/{inventory,library}.ts`.
+
+- **Stock derivado:** gramos = inicial − Σ brews de la bolsa + Σ ajustes. "Ajustar gramos" guarda la diferencia como evento (`stockAdjustments`, P-11 adelantado). En la fase 5 las mismas filas suben a `bags` / `stock_adjustments` con sync idempotente.
+- **Vínculo del brew:** `saveBrewSession` completa `coffeeId` (de la receta) y `bagId` (bolsa activa más reciente del café) al terminar; recetas seed quedan sin café.
+- **Café habitual (`pickHabitual`):** entre cafés no archivados con bolsa activa y al menos una dosis, el de más brews en 30 días; empate → el preparado más reciente; sin brews → el agregado más reciente. Sin candidatos, el hero muestra la última receta usada (fase 2) o "Prepara tu primer café".
+- **Recetas del motor:** `saveEngineVersion` guarda la V1 con `recipeId = café:método:objetivo`; `findActiveVersion` la reutiliza (R1). Brew Mode las abre en `/brew?v=` (precacheada; el SW ignora los parámetros de la URL al buscar en el precache).
+- **Setup:** `meta.setup = { grinder, brewAltitudeM }`. Preset LEBURRY 38 (`features/recipes/grinders.ts`); el motor usa `base[método] ± pasos × clicksPerStep`.
+
 ---
 
 ## 6. Capa de IA (fases 6–7)
@@ -1067,6 +1077,12 @@ Registro de clientes con consentimiento (D-04) · Coffee Lab · "¿Por qué esta
 ---
 
 ## 12. Changelog
+
+### v1.2 (4 nov 2026) — fase 3
+- Dexie v2 (cafés, bolsas, ajustes) e inventario local adelantado (P-25); §5.9 nuevo.
+- `recipe-engine` con tablas de P-14 (propuesta por confirmar) en `features/recipes/engine-tables.ts`; molino LEBURRY.
+- Rutas: `/stock`, `/cafe`, `/cafe/nuevo`, `/hacer-cafe`, `/brew?v=`, `/setup`, todas precacheadas.
+- `SerwistProvider` con `reloadOnOnline={false}`: volver a tener señal no recarga la página (cortaría un brew).
 
 ### v1.1 (3 nov 2026) — re-alineación a DS v1.2 + Figma
 - Fuentes: decisiones v1.1 (D-14…D-17), tech v2.1, DS v1.2, product v0.5. Figma `7:12` es la fuente visual (D-14).

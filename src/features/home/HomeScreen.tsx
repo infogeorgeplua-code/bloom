@@ -1,43 +1,37 @@
 'use client'
 
 /**
- * Home (DS §4.1, Figma 01 · 7:13) con lo que existe sin backend (S-08): retomar, tu café
- * habitual (la última receta usada), métricas del mes y las recetas base.
+ * Home (DS §4.1, Figma 01 · 7:13). El contenido de Figma es demo: "Tu café habitual" lo elige
+ * el sistema (SDD §5.9) y Stock/recientes salen del inventario local (P-25, fase 3).
  */
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Coffee } from 'lucide-react'
-import {
-  Banner,
-  BottomNav,
-  BottomSheet,
-  Button,
-  CoffeeHero,
-  ListRow,
-  Tile,
-  Toggle,
-  TopBar,
-  type NavKey,
-} from '@/components'
+import { Banner, BottomNav, Button, CoffeeHero, Tile, TopBar, type HeroParam } from '@/components'
+import { CoffeeRow } from '@/features/coffees/StockScreen'
 import { finishExpired, restore, type RestoreResult } from '@/features/brew-mode/brew-machine'
+import { pickHabitual, recentCoffees, stockTotals, type CoffeeSummary } from '@/features/inventory/library'
+import { todayISO } from '@/features/coffees/coffee-form'
+import { generateRecipe } from '@/features/recipes/recipe-engine'
+import { OBJECTIVE_LABEL } from '@/features/recipes/engine-tables'
+import { NAV_HREFS } from '@/features/shell/AppShell'
+import { getRecipeVersion, getSetup, loadSummaries, saveBrewSession } from '@/lib/library-db'
 import { formatDuration, formatNumber, formatRatio } from '@/lib/format'
-import {
-  ensureSeed,
-  getDb,
-  getHapticsEnabled,
-  setHapticsEnabled,
-  type BrewSessionRecord,
-} from '@/lib/offline-db'
-import { seedRecipe, seedRecipes } from '@/lib/recipes'
-import type { RecipeVersion } from '@/lib/schemas/recipe-seed'
+import { ensureSeed, getDb, type BrewSessionRecord } from '@/lib/offline-db'
+import { brewHref } from '@/lib/recipes'
+import type { RecipeParams, RecipeVersion } from '@/lib/schemas/recipe-seed'
 import { formatShare, METHOD_LABEL, monthlyStats, startOfMonth, type MonthlyStats } from './monthly-stats'
+
+/** Lo que muestra la tarjeta "Tu café habitual" */
+type Hero =
+  | { kind: 'empty' }
+  | { kind: 'filled'; name: string; method: RecipeVersion['method']; subtitle: string; locked: boolean; params: RecipeParams; href: string }
 
 interface HomeData {
   dateText: string
-  last: RecipeVersion | null
+  hero: Hero
   stats: MonthlyStats
+  coffees: CoffeeSummary[]
   resume: { recipe: RecipeVersion; result: RestoreResult } | null
-  haptics: boolean
 }
 
 function dateLabel(now: number): string {
@@ -47,39 +41,66 @@ function dateLabel(now: number): string {
   return `${weekday} · ${d.getDate()} ${month}`
 }
 
-const heroParams = (r: RecipeVersion) => [
-  { value: formatNumber(r.params.doseG), unit: 'g', label: 'Café' },
-  { value: formatNumber(r.params.waterG), unit: 'g', label: 'Agua' },
-  { value: formatNumber(r.params.tempC), unit: '°C', label: 'Temp.' },
-  { value: formatRatio(r.params.waterG, r.params.doseG), label: 'Ratio' },
+const heroParams = (p: RecipeParams): HeroParam[] => [
+  { value: formatNumber(p.doseG), unit: 'g', label: 'Café' },
+  { value: formatNumber(p.waterG), unit: 'g', label: 'Agua' },
+  { value: formatNumber(p.tempC), unit: '°C', label: 'Temp.' },
+  { value: formatRatio(p.waterG, p.doseG), label: 'Ratio' },
 ]
+
+const versionSubtitle = (v: RecipeVersion) => `${METHOD_LABEL[v.method]} · Receta V${v.number}`
 
 export function HomeScreen() {
   const router = useRouter()
   const [data, setData] = useState<HomeData | null>(null)
-  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const load = useCallback(async () => {
     const db = getDb()
     const now = Date.now()
     await ensureSeed(db, now)
     const sessions: BrewSessionRecord[] = await db.brewSessions.orderBy('finishedAtEpochMs').toArray()
-    const lastSession = [...sessions].reverse().find((s) => s.outcome === 'completed')
-    const monthSessions = sessions.filter((s) => s.finishedAtEpochMs >= startOfMonth(now))
+    const coffees = await loadSummaries(db, now)
+    const habitual = pickHabitual(coffees)
+
+    // Tu café habitual: el café que el sistema elige; si no hay, la última receta usada
+    let hero: Hero = { kind: 'empty' }
+    if (habitual) {
+      const v = habitual.lastVersionId ? await getRecipeVersion(db, habitual.lastVersionId) : null
+      if (v) {
+        hero = { kind: 'filled', name: habitual.coffee.name, method: v.method, subtitle: versionSubtitle(v), locked: v.status === 'locked', params: v.params, href: brewHref(v.id) }
+      } else {
+        const method = habitual.lastMethod ?? 'v60'
+        const out = generateRecipe({ method, objective: 'equilibrado', coffee: habitual.coffee, setup: await getSetup(db), todayISO: todayISO() })
+        hero = {
+          kind: 'filled',
+          name: habitual.coffee.name,
+          method,
+          subtitle: `${METHOD_LABEL[method]} · ${OBJECTIVE_LABEL.equilibrado}`,
+          locked: false,
+          params: out.params,
+          href: `/hacer-cafe?cafe=${encodeURIComponent(habitual.coffee.id)}`,
+        }
+      }
+    } else {
+      const last = [...sessions].reverse().find((s) => s.outcome === 'completed')
+      const v = last ? await getRecipeVersion(db, last.versionId) : null
+      if (v) hero = { kind: 'filled', name: v.name, method: v.method, subtitle: versionSubtitle(v), locked: v.status === 'locked', params: v.params, href: brewHref(v.id) }
+    }
+
     const active = await db.activeBrew.get('current')
     let resume: HomeData['resume'] = null
     if (active) {
-      const recipe = seedRecipe(active.versionId)
+      const recipe = await getRecipeVersion(db, active.versionId)
       const result = recipe ? restore(active, recipe.params, now) : ({ kind: 'discard' } as const)
       if (recipe && result.kind !== 'discard') resume = { recipe, result }
       else await db.activeBrew.delete('current')
     }
     setData({
       dateText: dateLabel(now),
-      last: lastSession ? (seedRecipe(lastSession.versionId) ?? null) : null,
-      stats: monthlyStats(monthSessions, now),
+      hero,
+      stats: monthlyStats(sessions.filter((s) => s.finishedAtEpochMs >= startOfMonth(now)), now),
+      coffees,
       resume,
-      haptics: await getHapticsEnabled(db),
     })
   }, [])
 
@@ -89,21 +110,17 @@ export function HomeScreen() {
     void load()
   }, [load])
 
-  const open = (id: string) => router.push(`/brew-mode/${id}`)
-  const fallbackId = data?.last?.id ?? 'v60-base-v1'
-
-  const onNav = (key: NavKey) => {
-    if (key === 'make') open(fallbackId)
-  }
-
   if (!data) return <main className="min-h-dvh" aria-busy="true" />
 
-  const { stats, resume } = data
+  const { stats, resume, hero, coffees } = data
+  const totals = stockTotals(coffees)
+  const hasStock = coffees.some((s) => !s.coffee.archived && s.activeBag)
+  const recent = recentCoffees(coffees)
 
   return (
     <>
       <main className="flex flex-col gap-6 px-5 pt-2 pb-[calc(var(--nav-height)+env(safe-area-inset-bottom)+2rem)]">
-        <TopBar variant="home" dateText={data.dateText} onSettings={() => setSettingsOpen(true)} />
+        <TopBar variant="home" dateText={data.dateText} onSettings={() => router.push('/setup')} />
         <h1 className="t-display text-fg">¿Qué preparamos?</h1>
 
         {resume ? (
@@ -111,7 +128,7 @@ export function HomeScreen() {
             <Banner
               tone="neutral"
               action={
-                <Button variant="tertiary" size="md" onClick={() => open(resume.recipe.id)}>
+                <Button variant="tertiary" size="md" onClick={() => router.push(brewHref(resume.recipe.id))}>
                   Retomar
                 </Button>
               }
@@ -131,7 +148,7 @@ export function HomeScreen() {
                     if (r.kind !== 'expired') return
                     const db = getDb()
                     for (const fx of finishExpired(r.state, { params: resume.recipe.params, method: resume.recipe.method }, crypto.randomUUID())) {
-                      if (fx.type === 'saveSession') await db.brewSessions.put(fx.session)
+                      if (fx.type === 'saveSession') await saveBrewSession(db, fx.session)
                       if (fx.type === 'clearPersisted') await db.activeBrew.delete('current')
                     }
                     await load()
@@ -156,23 +173,35 @@ export function HomeScreen() {
           ) : null
         ) : null}
 
-        {data.last ? (
+        {hero.kind === 'filled' ? (
           <CoffeeHero
-            name={data.last.name}
-            method={data.last.method}
-            subtitle={`${METHOD_LABEL[data.last.method]} · Receta V${data.last.number}`}
-            locked={data.last.status === 'locked'}
-            params={heroParams(data.last)}
-            onPrepare={() => open(data.last!.id)}
+            name={hero.name}
+            method={hero.method}
+            subtitle={hero.subtitle}
+            locked={hero.locked}
+            params={heroParams(hero.params)}
+            onPrepare={() => router.push(hero.href)}
           />
         ) : (
-          <CoffeeHero empty onPrepare={() => open('v60-base-v1')} />
+          <CoffeeHero empty onPrepare={() => router.push('/hacer-cafe')} />
         )}
 
-        {/* Sin inventario hasta la fase 5: el tile Stock no se muestra (S-08) */}
         <div className="grid grid-cols-2 gap-3">
+          {hasStock ? (
+            <Tile
+              content="meter"
+              variant="interactive"
+              onClick={() => router.push('/stock')}
+              label="Stock"
+              value={formatNumber(totals.grams)}
+              unit="g"
+              caption={`${totals.coffeesInStock} ${totals.coffeesInStock === 1 ? 'café' : 'cafés'} en stock`}
+              level={totals.level}
+              fill={totals.fill}
+            />
+          ) : null}
           <Tile content="orb" label="Este mes" value={String(stats.totalBrews)} caption={stats.totalBrews === 1 ? 'café' : 'cafés'} />
-          {stats.topMethods.map((m) => (
+          {stats.topMethods.map((m, i) => (
             <Tile
               key={m.method}
               content="bar"
@@ -180,46 +209,33 @@ export function HomeScreen() {
               value={String(m.brews)}
               unit={m.brews === 1 ? 'brew' : 'brews'}
               share={m.share}
+              barTone={i === 0 ? 'primary' : 'secondary'}
               caption={formatShare(m.share)}
             />
           ))}
         </div>
 
-        <section className="flex flex-col gap-1" aria-labelledby="recetas-base">
-          <h2 id="recetas-base" className="t-label text-fg-3">
-            Recetas base
-          </h2>
-          <div>
-            {seedRecipes().map((r) => (
-              <ListRow
-                key={r.id}
-                thumb={<Coffee size={24} strokeWidth={1.5} aria-hidden="true" />}
-                title={METHOD_LABEL[r.method]}
-                subtitle={`${formatNumber(r.params.doseG)} g · ${formatNumber(r.params.waterG)} g · ${formatNumber(r.params.tempC)} °C`}
-                onClick={() => open(r.id)}
-              />
-            ))}
-          </div>
-        </section>
+        <Button variant="secondary" size="lg" fullWidth onClick={() => router.push('/cafe/nuevo')}>
+          Tengo un café nuevo
+        </Button>
+
+        {recent.length ? (
+          <section className="flex flex-col gap-1" aria-labelledby="cafes-recientes">
+            <h2 id="cafes-recientes" className="t-label text-fg-3">
+              Cafés recientes
+            </h2>
+            <div>
+              {recent.map((s) => (
+                <CoffeeRow key={s.coffee.id} s={s} onOpen={() => router.push(`/cafe?id=${encodeURIComponent(s.coffee.id)}`)} />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-(--app-max-width)">
-        <BottomNav active="home" onSelect={onNav} disabled={['stock', 'setup']} />
+        <BottomNav active="home" hrefs={NAV_HREFS} />
       </div>
-
-      <BottomSheet open={settingsOpen} onOpenChange={setSettingsOpen} title="Ajustes del Brew Mode">
-        {/* TODO(ds-pendiente): hoja temporal hasta la pantalla de Setup (fase 3) */}
-        <Toggle
-          label="Vibración"
-          checked={data.haptics}
-          onChange={async (v) => {
-            await setHapticsEnabled(getDb(), v)
-            setData({ ...data, haptics: v })
-          }}
-        />
-        <p className="t-caption text-fg-3">El aviso en pantalla siempre está, con o sin vibración.</p>
-      </BottomSheet>
     </>
   )
 }
-

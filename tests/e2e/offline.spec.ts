@@ -12,7 +12,13 @@ test('modo avión: tras la primera visita, el Home y Brew Mode abren sin red', a
   })
   // Espera a que el precache tenga el Home y las páginas de Brew Mode (no un tiempo fijo)
   await page.waitForFunction(
-    async () => Boolean((await caches.match('/brew-mode/aeropress-base-v1')) && (await caches.match('/'))),
+    async () =>
+      Boolean(
+        (await caches.match('/brew-mode/aeropress-base-v1')) &&
+          (await caches.match('/')) &&
+          (await caches.match('/brew')) &&
+          (await caches.match('/hacer-cafe')),
+      ),
     undefined,
     { timeout: 20_000, polling: 250 },
   )
@@ -28,6 +34,12 @@ test('modo avión: tras la primera visita, el Home y Brew Mode abren sin red', a
   await expect(page.locator('[data-status="running"]')).toBeVisible({ timeout: 6000 })
   // Brew Mode nunca muestra "Sin conexión"
   await expect(page.getByText(/Sin conexión/)).toHaveCount(0)
+
+  // Fase 3: Hacer café y las recetas guardadas en IndexedDB (`/brew?v=`) también abren sin red
+  await page.goto('/hacer-cafe')
+  await expect(page.getByRole('heading', { name: '¿Qué café preparas?' })).toBeVisible()
+  await page.goto('/brew?v=v60-base-v1')
+  await expect(page.getByText('Tiempo objetivo')).toBeVisible()
   await context.setOffline(false)
 })
 

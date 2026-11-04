@@ -85,7 +85,7 @@ describe('brew-machine', () => {
     expect(transition(state, { type: 'TICK', nowEpochMs: at(43) }, ctxV60).effects).toEqual([])
     const change = transition(state, { type: 'TICK', nowEpochMs: at(45) }, ctxV60)
     expect(change.effects).toContainEqual({ type: 'haptic', kind: 'step' })
-    expect(change.effects).toContainEqual({ type: 'announce', text: 'Primer vertido. Vierte hasta 140 gramos.' })
+    expect(change.effects).toContainEqual({ type: 'announce', text: 'Primer vertido. Vierte agua hasta 140 gramos.' })
   })
 
   it('el último paso NO termina solo (D-17): el TICK nunca lleva a finished', () => {

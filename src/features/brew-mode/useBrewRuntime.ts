@@ -5,6 +5,7 @@
  * persistencia cada 1 s (D-08), efectos (IndexedDB, vibración, anuncios) y wake lock.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { saveBrewSession } from '@/lib/library-db'
 import { getDb, getHapticsEnabled } from '@/lib/offline-db'
 import { createClock } from './brew-clock'
 import { toRecord, type BrewState } from './brew-machine'
@@ -50,7 +51,8 @@ export function useBrewRuntime() {
               void db.activeBrew.delete('current')
               break
             case 'saveSession':
-              void db.brewSessions.put(fx.session)
+              // Vincula el brew al café y a su bolsa activa: el stock se descuenta solo
+              void saveBrewSession(db, fx.session)
               break
             case 'wakeLock':
               // El wake lock se deriva del estado (abajo); el efecto queda como registro

@@ -21,6 +21,8 @@ const serwist = new Serwist({
   clientsClaim: true,
   navigationPreload: true,
   runtimeCaching: defaultCache,
+  // Las páginas leen su estado de la URL en el cliente (?v=, ?id=, ?cafe=): una sola entrada precacheada por ruta
+  precacheOptions: { ignoreURLParametersMatching: [/.*/] },
 })
 
 serwist.addEventListeners()

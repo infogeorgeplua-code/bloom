@@ -13,3 +13,8 @@ export function seedRecipe(id: string): RecipeVersion | undefined {
 
 /** Ids que se prerenderizan para que Brew Mode funcione sin conexión. */
 export const SEED_IDS = SEED.recipes.map((r) => r.id)
+
+/** Ruta de Brew Mode: las seed están prerenderizadas; las del motor viven en IndexedDB (`/brew?v=`) */
+export function brewHref(versionId: string): string {
+  return SEED_IDS.includes(versionId) ? `/brew-mode/${versionId}` : `/brew?v=${encodeURIComponent(versionId)}`
+}

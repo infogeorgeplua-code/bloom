@@ -53,6 +53,8 @@ interface BarContent {
   share: number
   /** "60% del mes": el porcentaje siempre va escrito, no solo como barra */
   caption: string
+  /** P-03: el método más usado en --text-1, el segundo en --text-2. Nunca crema. */
+  barTone?: 'primary' | 'secondary'
 }
 
 export type TileProps = TileBase & (BasicContent | MeterContent | OrbContent | BarContent)
@@ -128,9 +130,9 @@ export function Tile(props: TileProps) {
           </span>
           <span className="mt-auto flex flex-col gap-3">
             <span className="block h-2 w-full overflow-hidden rounded-[calc(var(--radius-xs)/2)] bg-track" aria-hidden="true">
-              {/* Relleno en --text-1, no en crema: crema significa "ahora" (P-03) */}
+              {/* P-03: --text-1 / --text-2, nunca crema (crema significa "ahora") */}
               <span
-                className="block h-full rounded-[calc(var(--radius-xs)/2)] bg-fg"
+                className={cn('block h-full rounded-[calc(var(--radius-xs)/2)]', props.barTone === 'secondary' ? 'bg-fg-2' : 'bg-fg')}
                 style={{ width: `${Math.round(Math.min(1, Math.max(0, props.share)) * 100)}%` }}
               />
             </span>
