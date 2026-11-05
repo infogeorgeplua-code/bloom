@@ -4,7 +4,9 @@
  */
 import { summarize, type CoffeeSummary } from '@/features/inventory/library'
 import { ENGINE_TRACEABILITY, recipeIdFor, type RecipeOutput } from '@/features/recipes/recipe-engine'
-import { OBJECTIVE_LABEL, type Objective } from '@/features/recipes/engine-tables'
+import { ENGINE_VERSION, OBJECTIVE_LABEL, type Objective } from '@/features/recipes/engine-tables'
+import { bestStart } from '@/features/evaluation/brew-adjust'
+import { evaluatedBrews } from './evaluation-db'
 import { METHOD_LABEL } from '@/features/home/monthly-stats'
 import { seedRecipe } from '@/lib/recipes'
 import {
@@ -106,10 +108,17 @@ export async function getRecipeVersion(db: BloomDB, id: string): Promise<RecipeV
   return seedRecipe(id) ?? null
 }
 
-/** R1 (fase 3): si ya existe la receta café + método + objetivo, su versión activa más nueva */
+/**
+ * R1: si la receta café + método + objetivo ya existe, su mejor punto de partida (bestStart).
+ * Una V1 de un motor anterior (P-14) que nunca se evaluó no cuenta: se regenera con P-14.1.
+ */
 export async function findActiveVersion(db: BloomDB, coffeeId: string | null, method: Method, objective: Objective): Promise<RecipeVersionRecord | null> {
   const rows = await db.recipes.where('recipeId').equals(recipeIdFor(coffeeId, method, objective)).toArray()
-  return rows.filter((r) => r.status !== 'reverted').sort((a, b) => b.number - a.number)[0] ?? null
+  const history = await evaluatedBrews(db, rows.map((r) => r.id))
+  const evaluated = new Set(history.map((b) => b.versionId))
+  const stale = (r: RecipeVersionRecord) =>
+    r.source === 'engine' && !r.parentVersionId && (r.engineVersion ?? 'P-14') !== ENGINE_VERSION && !evaluated.has(r.id)
+  return bestStart(rows.filter((r) => !stale(r)), history)
 }
 
 /** Guarda la V1 generada por el motor; devuelve su id para Brew Mode */
@@ -120,10 +129,13 @@ export async function saveEngineVersion(
   const { coffee, method, objective, output, nowEpochMs = Date.now() } = args
   const id = uuid()
   const name = `${coffee?.name ?? METHOD_LABEL[method]} · ${OBJECTIVE_LABEL[objective]}`
+  const recipeId = recipeIdFor(coffee?.id ?? null, method, objective)
+  // Si había una V1 vieja sin evaluar (P-14), la nueva toma el número siguiente
+  const siblings = await db.recipes.where('recipeId').equals(recipeId).toArray()
   await db.recipes.add({
     id,
-    recipeId: recipeIdFor(coffee?.id ?? null, method, objective),
-    number: 1,
+    recipeId,
+    number: Math.max(0, ...siblings.map((r) => r.number)) + 1,
     parentVersionId: null,
     status: 'active',
     method,
@@ -134,6 +146,7 @@ export async function saveEngineVersion(
     name,
     params: output.params,
     traceability: ENGINE_TRACEABILITY,
+    engineVersion: output.engineVersion,
     createdAtEpochMs: nowEpochMs,
   })
   return id

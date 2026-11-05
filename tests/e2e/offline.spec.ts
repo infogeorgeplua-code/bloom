@@ -17,7 +17,8 @@ test('modo avión: tras la primera visita, el Home y Brew Mode abren sin red', a
         (await caches.match('/brew-mode/aeropress-base-v1')) &&
           (await caches.match('/')) &&
           (await caches.match('/brew')) &&
-          (await caches.match('/hacer-cafe')),
+          (await caches.match('/hacer-cafe')) &&
+          (await caches.match('/evaluar')),
       ),
     undefined,
     { timeout: 20_000, polling: 250 },

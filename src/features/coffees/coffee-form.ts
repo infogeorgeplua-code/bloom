@@ -98,3 +98,10 @@ export function todayISO(now = new Date()): string {
 
 /** "día" / "días" (el número va aparte, en mono) */
 export const daysWord = (n: number): string => (n === 1 ? 'día' : 'días')
+
+/** Estado de la ventana de tueste (P-14.1: orientativa, nunca "caducó") */
+export const ROAST_STATE_TEXT = {
+  reposo: 'aún reposando',
+  en_ventana: 'dentro de su ventana',
+  fuera_de_ventana: 'fuera de su ventana orientativa',
+} as const

@@ -11,6 +11,8 @@ const ALLOWED = new Map([
   ['src/components/RatingScale.tsx', 'ícono star del nivel 5'],
   ['src/components/SourceCard.tsx', 'star de receta bloqueada'],
   ['src/components/CoffeeHero.tsx', 'star de receta bloqueada en el hero de Home'],
+  ['src/features/evaluation/EvaluationScreen.tsx', 'star de receta bloqueada: hoja ¿Bloqueamos? y confirmación (fase 4)'],
+  ['src/features/coffees/CoffeeProfileScreen.tsx', 'star de receta bloqueada en el historial de versiones (fase 4)'],
   ['src/styles/base.css', 'anillo de foco :focus-visible'],
   ['src/styles/tokens.css', 'definición de los tokens'],
   ['src/styles/tailwind.css', 'puente de tokens a Tailwind'],

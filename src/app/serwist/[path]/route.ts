@@ -15,7 +15,7 @@ const OFFLINE_PAGES = [
   '/stock',
   '/cafe',
   '/cafe/nuevo',
-  '/setup',
+  '/setup', '/evaluar',
 ]
 
 export const { dynamic, dynamicParams, revalidate, generateStaticParams, GET } = createSerwistRoute({

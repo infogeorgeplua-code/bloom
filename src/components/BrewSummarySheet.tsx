@@ -20,7 +20,7 @@ export interface BrewSummarySheetProps {
    */
   statusLine?: ReactNode
   onEvaluate: () => void
-  /** La evaluación llega en la fase 4 */
+  /** Sin brew guardado no hay qué evaluar */
   evaluateDisabled?: boolean
   onLater: () => void
 }

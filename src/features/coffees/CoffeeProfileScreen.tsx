@@ -6,20 +6,22 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Package, Pencil } from 'lucide-react'
-import { Banner, BottomSheet, Button, ChipGrid, IconButton, StockMeter, TextField, TopBar, TrustBadge } from '@/components'
+import { Package, Pencil, Star } from 'lucide-react'
+import { RATING_LABEL, Banner, BottomSheet, Button, ChipGrid, IconButton, StockMeter, TextField, TopBar, TrustBadge } from '@/components'
 import { FlowShell } from '@/features/shell/AppShell'
 import type { CoffeeSummary } from '@/features/inventory/library'
 import { roastWindow } from '@/features/recipes/recipe-engine'
 import { METHOD_LABEL } from '@/features/home/monthly-stats'
 import { adjustStockTo, archiveCoffee, finishBag, loadSummary, openBag } from '@/lib/library-db'
 import { getDb } from '@/lib/offline-db'
+import { loadRecipeHistory, type RecipeHistory } from '@/lib/evaluation-db'
+import { OBJECTIVE_LABEL, type Objective } from '@/features/recipes/engine-tables'
+import type { RatingLevel } from '@/lib/schemas/evaluation'
 import { formatNumber } from '@/lib/format'
 import { PROCESS_LABEL, ROAST_LABEL } from '@/lib/schemas/coffee'
-import { BAG_SIZES, daysWord, parseNumber, todayISO } from './coffee-form'
+import { BAG_SIZES, daysWord, parseNumber, todayISO, ROAST_STATE_TEXT } from './coffee-form'
 
 type Sheet = null | 'adjust' | 'bag' | 'archive'
-const ROAST_STATE_TEXT = { reposo: 'aún reposando', ideal: 'en su punto', pasada: 'pasado su mejor momento' } as const
 
 function relativeDays(epochMs: number, now: number): string {
   const d = Math.floor((now - epochMs) / 86_400_000)
@@ -35,11 +37,15 @@ export function CoffeeProfileScreen() {
   const [gramsError, setGramsError] = useState<string>()
   // "Ahora" se fija al cargar (los textos relativos no cambian entre renders)
   const [now, setNow] = useState(0)
+  const [recipes, setRecipes] = useState<RecipeHistory[]>([])
 
   const load = useCallback(async () => {
     const t = Date.now()
     setNow(t)
-    setS(await loadSummary(getDb(), id, t))
+    const db = getDb()
+    const [summary, history] = await Promise.all([loadSummary(db, id, t), loadRecipeHistory(db, id)])
+    setS(summary)
+    setRecipes(history)
   }, [id])
   useEffect(() => {
     // Lectura de IndexedDB (sistema externo)
@@ -157,9 +163,9 @@ export function CoffeeProfileScreen() {
       </section>
 
       {roast ? (
-        roast.state === 'ideal' ? (
+        roast.state === 'en_ventana' ? (
           <p className="t-body text-fg-2">
-            Tostado hace <span className="num">{roast.days}</span> {daysWord(roast.days)} · {ROAST_STATE_TEXT.ideal}
+            Tostado hace <span className="num">{roast.days}</span> {daysWord(roast.days)} · {ROAST_STATE_TEXT.en_ventana}
           </p>
         ) : (
           <Banner tone="warning">
@@ -207,6 +213,47 @@ export function CoffeeProfileScreen() {
           )}
         </p>
       </section>
+
+      {recipes.length ? (
+        <section className="flex flex-col gap-4" aria-labelledby="recetas">
+          <h2 id="recetas" className="t-label text-fg-3">
+            Tus recetas
+          </h2>
+          {recipes.map((r) => (
+            <div key={r.recipeId} className="flex flex-col gap-1">
+              <h3 className="t-body m-0 font-medium text-fg">
+                {METHOD_LABEL[r.method]} · {OBJECTIVE_LABEL[r.objective as Objective] ?? 'Receta base'}
+              </h3>
+              <ul className="m-0 flex list-none flex-col divide-y divide-line p-0">
+                {r.versions.map((v) => (
+                  <li key={v.id} className="flex items-center gap-3 py-2">
+                    <span className="num t-body w-10 text-fg">V{v.number}</span>
+                    <span className="t-body flex flex-1 items-center gap-1.5 text-fg-2">
+                      {v.status === 'locked' ? (
+                        <>
+                          <Star size={16} strokeWidth={1.5} className="fill-accent text-accent" aria-hidden="true" />
+                          Bloqueada
+                        </>
+                      ) : v.status === 'reverted' ? (
+                        'Revertida'
+                      ) : v.avg !== null ? (
+                        RATING_LABEL[Math.round(v.avg) as RatingLevel]
+                      ) : (
+                        'Sin evaluar'
+                      )}
+                    </span>
+                    {v.brews ? (
+                      <span className="t-caption text-fg-3">
+                        <span className="num">{v.brews}</span> {v.brews === 1 ? 'taza' : 'tazas'}
+                      </span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      ) : null}
 
       <Button variant="tertiary" size="md" onClick={() => setSheet('archive')}>
         {c.archived ? 'Volver a mostrar en Stock' : 'Archivar café'}

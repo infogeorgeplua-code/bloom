@@ -246,7 +246,7 @@ Los pendientes P-09 a P-16 venían del log v1.0 (antes numerados P-01 a P-08, ha
 | P-11 | **`stock_adjustments` y FKs** | Tech §4 dice que el ajuste manual es "un evento más", pero §3 no tiene tabla; un FK ignora RLS | Tabla `stock_adjustments`, FKs compuestas `(id, user_id)` (SDD §3.6) | Nada hasta la fase 5 | Fase 5 |
 | P-12 | **Rutas medidas por Lighthouse** | DS §9.4 pide Home, Brew Mode y Perfil de café; en la fase 1 solo existe `/ds` | Medir cada ruta cuando exista | Mide `/ds` | No |
 | P-13 | **Propósitos de AeroPress** (✅ resuelto, ver abajo) | Product §8–9 no define el propósito de "Vertido principal", "Espera" ni "Presiona" | George escribe los 3 textos | Los deja `null` y `InfoList` omite la fila | No |
-| P-14 | **Tablas numéricas del motor de recetas** (propuesta abajo, por confirmar) | Product §11 da dirección y límites, no valores por objetivo, tueste, proceso, variedad, altitud ni agua | Claude propone valores en el plan de la fase 3 y George confirma | Nada hasta la fase 3 | Fase 3 |
+| P-14 | **Tablas numéricas del motor de recetas** (✅ reemplazada por P-14.1, 4 nov) | Product §11 da dirección y límites, no valores por objetivo, tueste, proceso, variedad, altitud ni agua | Claude propone valores en el plan de la fase 3 y George confirma | Nada hasta la fase 3 | Fase 3 |
 | P-15 | **Tema claro sin `--danger`/`--warning`** | Con los valores del tema oscuro no llegan a 4,5:1 sobre `#FAFAF7` (axe lo marca) | Agregar ambos tokens al tema claro del DS | El e2e del tema claro omite solo `color-contrast` | Antes de activar "Automático" |
 | P-16 | **`eslint-plugin-jsx-a11y` y ESLint 10** | El plugin declara peer `eslint ≤ 9`; instalarlo suelto falla | Usar el que trae `eslint-config-next` (hecho) o fijar ESLint 9 | Usa el de `eslint-config-next` | No |
 | P-17 | **Ícono de Diario** (✅ resuelto 4 nov) | Figma 01 usa el matraz (`flask-conical`) de Lab; DS §2.8 dice `notebook` | `notebook`: Diario ya no es Lab | Usa `notebook` | No |
@@ -257,6 +257,9 @@ Los pendientes P-09 a P-16 venían del log v1.0 (antes numerados P-01 a P-08, ha
 | P-23 | **Serwist con Turbopack** (✅ resuelto, ver abajo) | Tech §1 pide `@serwist/next`, que según su documentación es solo para webpack; Next 16.4 compila con Turbopack por defecto (visto en la fase 1) | Usar `@serwist/turbopack` 9.5.13 (+ `esbuild` 0.28.2 como dependencia de desarrollo), que sirve el service worker desde un route handler. Alternativa: mantener `@serwist/next` y compilar con `next build --webpack` | Nada hasta la aprobación | Fase 2 |
 | P-24 | **PWA en el teléfono necesita HTTPS** (✅ resuelto, ver abajo) | El service worker y la instalación solo funcionan en contexto seguro (HTTPS o `localhost`); `http://192.168.1.104` no sirve para la prueba de 7 días | Desplegar en Vercel (Hobby) con la URL protegida; alternativa: depurar por USB con `chrome://inspect` (reenvío de puerto a `localhost`) | Nada hasta la aprobación | Cierre de la fase 2 |
 | P-25 | **Inventario antes del backend** (✅ resuelto, ver abajo) | Figma 01 muestra Stock y gramos en "Cafés recientes"; tech §0 pone bolsas y stock en la fase 5 | Inventario local en IndexedDB desde la fase 3; la fase 5 lo sincroniza | Nada hasta la aprobación | Fase 3 |
+| P-26 | **R5 mueve hasta 2 variables; P-14.1 pide una** | Product §10.3 R5: nivel 1–2 con síntomas → hasta 2 cambios. P-14.1 principio 1: un cambio por taza, porque con dos R6 no sabe cuál falló (lo escribe para la primera taza, pero el argumento vale igual para R5) | (a) dejar R5 como está; (b) **recomendado:** R5 también con 1 cambio (el del primer síntoma) y el segundo síntoma queda como pista | Implementa product §10.3 (2 cambios); pasar a (b) es una constante | Fase 4 |
+| P-27 | **Tabla de diagnóstico §10.2 en espresso y AeroPress** | La tabla está escrita para filtrado: el espresso no tiene bloom ni vertidos y "±10 g de agua" sobre 36 g es un 28 %; el seed de AeroPress ya agita en sus dos vertidos; "agua ≥ 2 × dosis" bloquea cualquier shot más corto | Bloom y agitación no aplican en espresso (pasa a la candidata 2); agitación solo en V60; en espresso el paso de agua = 10 % de la bebida en taza (medio paso 5 %), igual que el paso relativo de P-14.1, y la bebida queda entre 1:1,5 y 1:3 | Implementa la propuesta (`adjust-tables.ts`) | Fase 4 |
+| P-28 | **"Intensidad" como objetivo visible** | P-14.1 agrega el objetivo técnico `intensidad` (product §11 "Más intensidad") y deja a George decidir si se muestra | Mostrarlo en "¿Cómo quieres la taza?" como "Más intensidad" | Solo se alcanza con "Para alguien más · Intenso" | Fase 4 |
 | P-19 | **Sección de componentes de Figma desactualizada** | `6:2` todavía muestra "Mis cafés", "Lab · PRONTO" y `ListRow` con `StockMeter` | Actualizar `6:2` a v1.2 | Sigue el DS v1.2 y el frame 01 | No |
 
 ### Resueltos por George (3 nov 2026, arranque de la fase 2)
@@ -282,7 +285,29 @@ Los pendientes P-09 a P-16 venían del log v1.0 (antes numerados P-01 a P-08, ha
 | Molino | George usa un **LEBURRY** eléctrico de muelas cónicas, **38 posiciones** (1 = más fina). Rangos del fabricante (descripción del producto): espresso 1–5, moka 5–10, pour-over 10–20, prensa francesa 20–28, cold brew 28–38. AeroPress no aparece: se infiere entre moka y pour-over (8–14, `inferido`). [Ficha en Amazon](https://www.amazon.com/dp/B0D6QY9KFC) · [descripción con rangos](https://pacifiko.com/compras-en-linea/leburry-burr-coffee-grinder-portable-espresso-grinder-with-stainless-steel-conical-mill-for-travel-camping-cordless-rechargeable-electric-coffee-bean-grinders-with-38-adjustable-grind-settings-color-black&pid=ZDFiOGNhYm). |
 | P-08 | El logo SVG se pide al final del proyecto; mientras tanto sigue el PNG recortado. |
 
-### P-14 · Propuesta de tablas del motor de recetas (fase 3 · **por confirmar con George**)
+### Resueltos por George (4–5 nov 2026, arranque de la fase 4)
+
+| # | Resolución |
+|---|---|
+| P-14 | **Reemplazada por P-14.1**, entregada por George (`recipe-mapping.P-14.1.ts`, en `docs/Update 3-11/`, carpeta local fuera del repo) y copiada tal cual a `src/features/recipes/engine-tables.ts` (solo se quitó `PROCESS_TEMP_ADJUST`, que el archivo pedía quitar en fase 4). Resumen abajo. |
+| Fase 4 | Aprobada ("Vamos con la siguiente fase", 4 nov). Corre mientras sigue la prueba de 7 días de la fase 2 y la prueba en el teléfono de la fase 3. |
+
+### P-14.1 · Tablas del motor de recetas (vigente)
+
+Principios: un objetivo mueve **una** variable en la primera taza; cada regla declara su evidencia (`mecanica` · `medida` · `heuristica` · `hipotesis`); el ratio se mueve en % relativo; la altitud de **cultivo** no mueve la temperatura y la de **preparación** pone un techo físico (ebullición local) en métodos con hervidor abierto; ningún texto promete un sabor.
+
+| Objetivo | V60 | AeroPress | Espresso |
+|---|---|---|---|
+| Equilibrado | base + tueste | base + tueste | base + tueste |
+| Dulce | agua +6 % (medida) | agua +6 % (heurística) | sin cambio |
+| Brillante | −1 °C (hipótesis, apagada) | −1 °C (hipótesis, apagada) | −1 °C (hipótesis, apagada) |
+| Con cuerpo | agua −6 % (hipótesis, apagada) | agua −6 % (hipótesis, apagada) | bebida −10 % (heurística) |
+| Más claridad | agua +6 % (heurística) | agua +6 % (heurística) | bebida +10 % (hipótesis, apagada) |
+| Intensidad (vía "Intenso") | agua −6 % (mecánica) | agua −6 % (mecánica) | bebida −10 % (mecánica) |
+
+Preferencia → objetivo: dulce → dulce · intenso → intensidad · floral → claridad · suave → dulce · sorpréndeme → equilibrado. Tueste → °C (heurística): claro +1 · medio 0 · medio-oscuro −1 · oscuro −2. Límites por método: V60 85–96 · AeroPress 80–96 · espresso 88–96 °C; techo por ebullición local en V60 y AeroPress (Quito ~90,5 °C). Ventana de tueste orientativa (nunca bloquea): filtrado 7–21 d, espresso 14–30 d. Cada V1 guarda `engineVersion: "P-14.1"`; una V1 de P-14 sin evaluar se regenera.
+
+### P-14 · Propuesta de tablas del motor de recetas (histórico · reemplazada por P-14.1)
 
 Valores iniciales escritos por Claude a partir de la dirección y los límites de product §11. Viven en un solo archivo (`src/features/recipes/engine-tables.ts`), cada fila tiene test y cambiar un número no toca la lógica. Si George no está de acuerdo con alguno, se cambia ahí.
 

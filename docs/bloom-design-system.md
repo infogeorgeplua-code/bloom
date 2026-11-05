@@ -849,9 +849,8 @@ PARA LA PRÓXIMA TAZA                         label
 Reportaste: Quedó bien · falta dulzor         body
 RecipeParams diff:
   Temperatura   92 °C → 92,5 °C               num-md
-Un poco más de temperatura extrae más         body-lg
-azúcares sin tocar el cuerpo.
-Basado en tus últimas 3 tazas de este café    caption text-3
+Más temperatura extrae un poco más del café.  body-lg
+Basado en tus últimas 3 tazas de esta receta  caption text-3
 
 [ Usar V2 la próxima vez ]                    primary
 [ Mantener V1 ]                               secondary

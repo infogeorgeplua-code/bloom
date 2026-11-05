@@ -172,8 +172,7 @@ export function BrewMode({ recipe }: { recipe: RecipeVersion }) {
         coffeeG={formatNumber(p.doseG)}
         waterG={formatNumber(p.waterG)}
         tempC={formatNumber(p.tempC)}
-        evaluateDisabled
-        onEvaluate={() => {}}
+        onEvaluate={() => state.sessionId && router.push(`/evaluar?s=${encodeURIComponent(state.sessionId)}`)}
         onLater={goHome}
       />
     </div>

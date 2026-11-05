@@ -9,7 +9,7 @@ import { SegmentedControl, Stepper, TextField, Toggle, TrustBadge } from '@/comp
 import { AppShell } from '@/features/shell/AppShell'
 import { parseNumber } from '@/features/coffees/coffee-form'
 import { METHOD_LABEL } from '@/features/home/monthly-stats'
-import { brewAltitudeCap } from '@/features/recipes/recipe-engine'
+import { localBoilingPointC } from '@/features/recipes/engine-tables'
 import { LEBURRY_38, presetById, setupFromPreset } from '@/features/recipes/grinders'
 import { getSetup, saveSetup } from '@/lib/library-db'
 import { getDb, getHapticsEnabled, setHapticsEnabled } from '@/lib/offline-db'
@@ -94,7 +94,7 @@ export function SetupScreen() {
     setAltitudeError(undefined)
     void commit({ ...setup, brewAltitudeM: a })
   }
-  const cap = brewAltitudeCap(setup.brewAltitudeM)
+  const boiling = setup.brewAltitudeM ? localBoilingPointC(setup.brewAltitudeM) : null
 
   return (
     <AppShell active="setup">
@@ -186,9 +186,9 @@ export function SetupScreen() {
           error={altitudeError}
         />
         <p className="t-caption text-fg-3">
-          {cap !== null ? (
+          {boiling !== null ? (
             <>
-              A esta altitud el agua hierve antes: las recetas no pasan de <span className="num">{formatNumber(cap)}</span> °C.
+              A esta altitud el agua hierve a ~<span className="num">{formatNumber(boiling)}</span> °C: en V60 y AeroPress la receta no pasa de ahí.
             </>
           ) : (
             'En altura el agua hierve antes; con este dato Bloom ajusta la temperatura máxima.'

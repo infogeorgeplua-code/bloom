@@ -64,7 +64,7 @@ test.describe('Brew Mode', () => {
     const sheet = page.getByRole('dialog', { name: 'Tu café está listo' })
     await expect(sheet).toBeVisible()
     await expect(sheet.getByText('Temp.')).toBeVisible()
-    await expect(sheet.getByRole('button', { name: 'Evaluar receta' })).toBeDisabled()
+    await expect(sheet.getByRole('button', { name: 'Evaluar receta' })).toBeEnabled()
     await sheet.getByRole('button', { name: 'Más tarde' }).click()
 
     // El Home refleja el brew recién terminado

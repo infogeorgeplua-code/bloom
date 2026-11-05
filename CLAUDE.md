@@ -5,7 +5,7 @@ Bloom es un copiloto de café de especialidad: una PWA para Android (Chrome), en
 Su pantalla principal es Brew Mode, que acompaña cada preparación segundo a segundo y funciona sin conexión.
 Aprende de cada taza con reglas deterministas; el LLM (fase 6+) solo extrae y redacta.
 
-**Fase actual: 3 · Recetas + Setup** (aprobada el 4 nov 2026, `docs/prompts/fase-3.md`; incluye inventario local, P-25). La fase 2 sigue abierta hasta sus 7 días de uso real (`docs/qa/fase-2-dispositivo.md`). Fase 1 cerrada. Cambiar de fase solo cuando George lo apruebe.
+**Fase actual: 4 · Evaluación y aprendizaje** (aprobada el 4 nov 2026, `docs/prompts/fase-4.md`; motor de recetas con P-14.1). Siguen abiertas la prueba de 7 días de la fase 2 (`docs/qa/fase-2-dispositivo.md`) y la prueba en el teléfono de la fase 3. Fase 1 cerrada. Cambiar de fase solo cuando George lo apruebe.
 
 ## Precedencia y dónde está cada cosa
 Si dos documentos chocan manda el de arriba:

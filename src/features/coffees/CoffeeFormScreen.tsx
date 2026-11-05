@@ -18,6 +18,7 @@ import {
   daysWord,
   EMPTY_FORM,
   fromRecord,
+  ROAST_STATE_TEXT,
   todayISO,
   validateCoffeeForm,
   type CoffeeFormValues,
@@ -26,7 +27,6 @@ import {
 
 const PROCESS_OPTIONS = (Object.keys(PROCESS_LABEL) as ProcessType[]).map((v) => ({ value: v, label: PROCESS_LABEL[v] }))
 const ROAST_OPTIONS = (Object.keys(ROAST_LABEL) as RoastLevel[]).map((v) => ({ value: v, label: ROAST_LABEL[v] }))
-const ROAST_STATE_TEXT = { reposo: 'aún reposando', ideal: 'en su punto', pasada: 'pasado su mejor momento' } as const
 
 function Group({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (

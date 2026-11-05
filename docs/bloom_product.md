@@ -496,9 +496,8 @@ PARA LA PRÓXIMA TAZA
 
 Reportaste: "Quedó bien" · falta dulzor
 Cambio: Temperatura 92 °C → 92,5 °C
-Por qué: un poco más de temperatura extrae más azúcares
-         sin tocar el cuerpo.
-Basado en: tus últimas 3 tazas de este café
+Por qué: más temperatura extrae un poco más del café.
+Basado en: tus últimas 3 tazas de esta receta
 
 [ Usar V2 la próxima vez ]   [ Mantener V1 ]
 ```

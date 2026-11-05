@@ -1,24 +1,28 @@
 /**
- * Motor de recetas determinista (SDD §5.3, product §11). Parte de la receta base del método
- * (seed, product §9), aplica el objetivo (≤ 2 variables) y la ficha del café. Sin LLM: todo
- * número sale de aquí o del seed. Las tablas viven en engine-tables.ts (P-14).
+ * Motor de recetas determinista (SDD §5.3, product §11) con las tablas P-14.1 (engine-tables.ts).
+ * Parte de la receta base del método (seed, product §9), aplica el tueste del café y la regla del
+ * objetivo (UNA variable, con su evidencia) y acota la temperatura por método y por la ebullición
+ * a tu altitud. Sin LLM: todo número sale de aquí o del seed.
  */
-import type { CoffeeRecord, ProcessType, RoastLevel, SetupRecord } from '@/lib/schemas/coffee'
-import { PROCESS_LABEL, ROAST_LABEL } from '@/lib/schemas/coffee'
+import type { CoffeeRecord, RoastLevel, SetupRecord } from '@/lib/schemas/coffee'
+import { ROAST_LABEL } from '@/lib/schemas/coffee'
 import type { Method, RecipeParams, RecipeStep } from '@/lib/schemas/recipe-seed'
 import { seedRecipes } from '@/lib/recipes'
 import {
-  COFFEE_ALTITUDE_TEMP_ADJUST,
-  OBJECTIVE_DELTAS,
+  ENGINE_VERSION,
   PREFERENCE_TO_OBJECTIVE,
   PRIORITY_TEXT,
-  PROCESS_TEMP_ADJUST,
+  PRIORITY_TEXT_NO_CHANGE,
+  RATIO_DEFINITION,
   ROAST_TEMP_ADJUST,
+  ROAST_TEMP_EVIDENCE,
   ROAST_WINDOW_DAYS,
-  TECHNIQUE_TEXT,
-  TEMP_LIMITS_C,
+  clampTempC,
+  ruleFor,
+  type Evidence,
   type Objective,
   type Preference,
+  type RoastWindowState,
   type TechnicalObjective,
 } from './engine-tables'
 
@@ -32,17 +36,20 @@ export interface RecipeInput {
   coffee: EngineCoffee | null
   setup: SetupRecord
   todayISO: string
+  /** Por defecto ENABLE_HYPOTHESIS_RULES (apagado) */
+  enableHypotheses?: boolean
 }
 
 export interface Change {
-  variable: 'tempC' | 'grind' | 'ratio' | 'bloom' | 'technique'
+  variable: 'tempC' | 'ratio'
   /** "Tueste claro: +1 °C" */
   label: string
+  evidence: Evidence | null
 }
 
 export interface RoastWindow {
   days: number
-  state: 'reposo' | 'ideal' | 'pasada'
+  state: RoastWindowState
 }
 
 export interface RecipeOutput {
@@ -52,9 +59,13 @@ export interface RecipeOutput {
   priority: string
   changes: Change[]
   roast: RoastWindow | null
+  /** Evidencia de la regla del objetivo que se aplicó; null si no movió nada */
+  objectiveEvidence: Evidence | null
+  engineVersion: typeof ENGINE_VERSION
 }
 
-const fmtSigned = (n: number) => `${n > 0 ? '+' : '−'}${String(Math.abs(n)).replace('.', ',')}`
+const fmtNum = (n: number) => String(Math.abs(n)).replace('.', ',')
+const fmtSigned = (n: number) => `${n > 0 ? '+' : '−'}${fmtNum(n)}`
 
 export function baseRecipe(method: Method) {
   const r = seedRecipes().find((x) => x.method === method && x.source === 'seed')
@@ -64,56 +75,42 @@ export function baseRecipe(method: Method) {
 
 export function resolveObjective(objective: Objective, preference: Preference | null | undefined): TechnicalObjective {
   if (objective !== 'para_alguien_mas') return objective
-  // Sin preferencia: dulzor prioritario (product §11)
   return PREFERENCE_TO_OBJECTIVE[preference ?? 'sorprendeme']
 }
 
-/** Días desde el tueste y estado de la ventana (7–21 d filtrado, 14–30 d espresso) */
+/** Días desde el tueste y estado de la ventana orientativa (7–21 d filtrado, 14–30 d espresso) */
 export function roastWindow(roastDateISO: string, todayISO: string, method: Method): RoastWindow {
   const day = (iso: string) => Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)))
   const days = Math.max(0, Math.round((day(todayISO) - day(roastDateISO)) / 86_400_000))
   const [from, to] = ROAST_WINDOW_DAYS[method === 'espresso' ? 'espresso' : 'filtrado']
-  return { days, state: days < from ? 'reposo' : days > to ? 'pasada' : 'ideal' }
-}
-
-/** El agua hierve a ≈ 100 − altitud/300 °C; la receta queda 1 °C por debajo. null = sin tope. */
-export function brewAltitudeCap(altitudeM: number | null): number | null {
-  if (altitudeM === null || altitudeM <= 0) return null
-  return Math.floor((100 - altitudeM / 300) * 2) / 2 - 1
-}
-
-export function coffeeAltitudeAdjust(altitudeM: number | null): number {
-  if (altitudeM === null) return 0
-  return COFFEE_ALTITUDE_TEMP_ADJUST.find((r) => altitudeM >= r.minM)?.tempC ?? 0
+  return { days, state: days < from ? 'reposo' : days > to ? 'fuera_de_ventana' : 'en_ventana' }
 }
 
 export const roastAdjust = (r: RoastLevel | null) => (r ? ROAST_TEMP_ADJUST[r] : 0)
-export const processAdjust = (p: ProcessType | null) => (p ? PROCESS_TEMP_ADJUST[p] : 0)
 
-const roundHalf = (n: number) => Math.round(n * 2) / 2
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
-/** Clicks del molino para el método ± pasos; null sin molino configurado */
+/** Clicks del molino para el método ± posiciones; null sin molino configurado */
 export function grindFor(method: Method, steps: number, setup: SetupRecord): number | null {
   const g = setup.grinder
   if (!g) return null
   return clamp(g.base[method] + steps * g.clicksPerStep, g.minClicks, g.maxClicks)
 }
 
-function grindDescriptor(base: string, steps: number): string {
-  if (steps < 0) return `${base}, un poco más fina`
-  if (steps > 0) return `${base}, un poco más gruesa`
-  return base
+/** Filtrado en gramos enteros; espresso (bebida en taza) con un decimal: 32,4 g */
+export function roundWater(method: Method, g: number): number {
+  return RATIO_DEFINITION[method] === 'bebida_en_taza_sobre_dosis' ? Math.round(g * 10) / 10 : Math.round(g)
 }
 
-/** Reescala las metas acumuladas al nuevo total de agua (enteros, siempre crecientes) */
-function scaleTargets(steps: RecipeStep[], fromWater: number, toWater: number): RecipeStep[] {
+/** Reescala las metas acumuladas al nuevo total de agua (siempre crecientes; la última = el total) */
+export function scaleTargets(steps: RecipeStep[], fromWater: number, toWater: number, method: Method): RecipeStep[] {
   if (fromWater === toWater) return steps
   let last = 0
   return steps.map((s) => {
     if (s.targetG === null) return s
     const isLast = s.targetG === fromWater
-    const t = Math.max(last + 1, isLast ? toWater : Math.round((s.targetG * toWater) / fromWater))
+    const scaled = isLast ? toWater : roundWater(method, (s.targetG * toWater) / fromWater)
+    const t = Math.max(last + (method === 'espresso' ? 0.1 : 1), scaled)
     last = t
     return { ...s, targetG: t }
   })
@@ -123,85 +120,73 @@ export function generateRecipe(input: RecipeInput): RecipeOutput {
   const { method, coffee, setup, todayISO } = input
   const base = baseRecipe(method).params
   const technicalObjective = resolveObjective(input.objective, input.preference)
-  const delta = OBJECTIVE_DELTAS[technicalObjective][method]
+  const rule = ruleFor(technicalObjective, method, input.enableHypotheses)
   const changes: Change[] = []
   const warnings = [...base.warnings]
 
-  // 1 · Temperatura: objetivo + ficha del café, acotada y redondeada a 0,5
+  // 1 · Temperatura: tueste (heurística) + objetivo si mueve °C, acotada por método y ebullición local
   let temp = base.tempC
-  if (delta.tempC) {
-    temp += delta.tempC
-    changes.push({ variable: 'tempC', label: `Objetivo: ${fmtSigned(delta.tempC)} °C` })
+  const roast = roastAdjust(coffee?.roastLevel ?? null)
+  if (roast && coffee?.roastLevel) {
+    temp += roast
+    changes.push({ variable: 'tempC', label: `Tueste ${ROAST_LABEL[coffee.roastLevel].toLowerCase()}: ${fmtSigned(roast)} °C`, evidence: ROAST_TEMP_EVIDENCE })
   }
-  const contextual: [number, string][] = [
-    [roastAdjust(coffee?.roastLevel ?? null), coffee?.roastLevel ? `Tueste ${ROAST_LABEL[coffee.roastLevel].toLowerCase()}` : ''],
-    [processAdjust(coffee?.process ?? null), coffee?.process ? `Proceso ${PROCESS_LABEL[coffee.process].toLowerCase()}` : ''],
-    [coffeeAltitudeAdjust(coffee?.altitudeM ?? null), coffee?.altitudeM != null ? `Altitud del cultivo ${coffee.altitudeM} m` : ''],
-  ]
-  for (const [d, label] of contextual) {
-    if (!d) continue
-    temp += d
-    changes.push({ variable: 'tempC', label: `${label}: ${fmtSigned(d)} °C` })
+  if (rule.variable === 'tempC' && rule.delta) {
+    temp += rule.delta
+    changes.push({
+      variable: 'tempC',
+      label: `Objetivo: ${fmtSigned(rule.delta)} °C${rule.evidence === 'hipotesis' ? ' (experimento)' : ''}`,
+      evidence: rule.evidence,
+    })
   }
-  temp = roundHalf(clamp(temp, TEMP_LIMITS_C[0], TEMP_LIMITS_C[1]))
-  const cap = brewAltitudeCap(setup.brewAltitudeM)
-  if (cap !== null && temp > cap) {
-    temp = cap
-    changes.push({ variable: 'tempC', label: `Tu altitud: el agua hierve antes, tope ${String(cap).replace('.', ',')} °C` })
+  const clamped = clampTempC(temp, method, setup.brewAltitudeM)
+  if (clamped.cappedBy === 'ebullicion') {
+    changes.push({ variable: 'tempC', label: `Tu altitud: tope ${fmtNum(clamped.tempC)} °C`, evidence: 'mecanica' })
+  } else if (clamped.cappedBy) {
+    changes.push({ variable: 'tempC', label: `Límite del método: ${fmtNum(clamped.tempC)} °C`, evidence: 'mecanica' })
   }
+  if (clamped.warning) warnings.push(clamped.warning)
 
-  // 2 · Molienda
-  const clicks = grindFor(method, delta.grindSteps, setup)
-  if (delta.grindSteps) {
-    changes.push({ variable: 'grind', label: `Objetivo: molienda ${delta.grindSteps < 0 ? 'más fina' : 'más gruesa'}` })
-  }
-
-  // 3 · Ratio → agua total y metas acumuladas
-  const baseRatio = base.waterG / base.doseG
-  const ratio = baseRatio + delta.ratio
-  const waterG = Math.round(base.doseG * ratio)
-  let steps = scaleTargets(base.steps, base.waterG, waterG)
-  if (delta.ratio) changes.push({ variable: 'ratio', label: `Objetivo: ratio ${fmtSigned(delta.ratio)}` })
-
-  // 4 · Bloom más corto
-  if (delta.bloomShorterS) {
-    const i = steps.findIndex((s) => s.type !== 'prep')
-    const bloom = steps[i]
-    if (bloom && bloom.startS !== null && bloom.endS !== null) {
-      const endS = Math.max(bloom.startS + 10, bloom.endS - delta.bloomShorterS)
-      steps = steps.map((s, k) => (k === i ? { ...s, endS } : s))
-      changes.push({ variable: 'bloom', label: `Objetivo: bloom ${delta.bloomShorterS} s más corto` })
-    }
+  // 2 · Ratio en % relativo (P-14.1 principio 3) → agua total y metas acumuladas
+  let waterG = base.waterG
+  let steps = base.steps
+  if (rule.variable === 'ratioPct' && rule.delta) {
+    waterG = roundWater(method, base.waterG * (1 + rule.delta / 100))
+    steps = scaleTargets(base.steps, base.waterG, waterG, method)
+    const what = method === 'espresso' ? 'bebida en taza' : 'agua por gramo'
+    changes.push({
+      variable: 'ratio',
+      label: `Objetivo: ${rule.delta > 0 ? 'más' : 'menos'} ${what} (${fmtSigned(rule.delta)} %)`,
+      evidence: rule.evidence,
+    })
   }
 
-  // 5 · Técnica de los vertidos (después del bloom)
-  if (delta.technique) {
-    const firstTimed = steps.findIndex((s) => s.type !== 'prep')
-    const text = TECHNIQUE_TEXT[delta.technique]
-    steps = steps.map((s, k) => (s.type === 'pour' && k > firstTimed ? { ...s, technique: text } : s))
-    changes.push({ variable: 'technique', label: `Objetivo: ${delta.technique === 'agitar' ? 'más agitación' : 'vertidos lentos'}` })
-  }
+  // Avisos de frescura: nunca mueven números ni bloquean el café
+  const fresh = coffee?.roastDateISO ? roastWindow(coffee.roastDateISO, todayISO, method) : null
+  if (fresh?.state === 'reposo') warnings.push(`Café muy fresco (${fresh.days} d desde el tueste): el bloom puede crecer más.`)
+  if (fresh?.state === 'fuera_de_ventana') warnings.push(`Tostado hace ${fresh.days} d: fuera de la ventana orientativa.`)
 
-  // Avisos (no mueven números)
-  const roast = coffee?.roastDateISO ? roastWindow(coffee.roastDateISO, todayISO, method) : null
-  if (roast?.state === 'reposo') warnings.push(`Café muy fresco (${roast.days} d desde el tueste): el bloom puede crecer más.`)
-  if (roast?.state === 'pasada') warnings.push(`Tostado hace ${roast.days} d: puede saber más plano.`)
-
-  const priority = input.objective === 'para_alguien_mas' ? `Para alguien más. ${PRIORITY_TEXT[technicalObjective]}` : PRIORITY_TEXT[technicalObjective]
+  const moved = rule.variable !== null && rule.delta !== 0
+  let priority: string
+  if (technicalObjective === 'equilibrado') priority = roast ? PRIORITY_TEXT.equilibrado : 'Partimos de la receta base.'
+  else priority = moved ? PRIORITY_TEXT[technicalObjective] : PRIORITY_TEXT_NO_CHANGE
+  if (input.objective === 'para_alguien_mas') priority = `Para alguien más. ${priority}`
 
   return {
     params: {
       ...base,
       waterG,
-      tempC: temp,
-      grind: { descriptor: grindDescriptor(base.grind.descriptor, delta.grindSteps), clicks },
+      tempC: clamped.tempC,
+      grind: { descriptor: base.grind.descriptor, clicks: grindFor(method, 0, setup) },
       steps,
       warnings,
     },
     technicalObjective,
     priority,
     changes,
-    roast,
+    roast: fresh,
+    objectiveEvidence: moved ? rule.evidence : null,
+    engineVersion: ENGINE_VERSION,
   }
 }
 

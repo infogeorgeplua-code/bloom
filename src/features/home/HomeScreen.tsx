@@ -15,6 +15,7 @@ import { generateRecipe } from '@/features/recipes/recipe-engine'
 import { OBJECTIVE_LABEL } from '@/features/recipes/engine-tables'
 import { NAV_HREFS } from '@/features/shell/AppShell'
 import { getRecipeVersion, getSetup, loadSummaries, saveBrewSession } from '@/lib/library-db'
+import { nextVersionFor, pendingEvaluation } from '@/lib/evaluation-db'
 import { formatDuration, formatNumber, formatRatio } from '@/lib/format'
 import { ensureSeed, getDb, type BrewSessionRecord } from '@/lib/offline-db'
 import { brewHref } from '@/lib/recipes'
@@ -32,6 +33,8 @@ interface HomeData {
   stats: MonthlyStats
   coffees: CoffeeSummary[]
   resume: { recipe: RecipeVersion; result: RestoreResult } | null
+  /** Último brew sin evaluar ("Más tarde", DS §4.3.e) */
+  pending: { sessionId: string; method: RecipeVersion['method'] } | null
 }
 
 function dateLabel(now: number): string {
@@ -65,7 +68,8 @@ export function HomeScreen() {
     // Tu café habitual: el café que el sistema elige; si no hay, la última receta usada
     let hero: Hero = { kind: 'empty' }
     if (habitual) {
-      const v = habitual.lastVersionId ? await getRecipeVersion(db, habitual.lastVersionId) : null
+      // R1: la mejor versión de la última receta (bloqueada, propuesta aceptada o mejor promedio)
+      const v = habitual.lastVersionId ? await nextVersionFor(db, habitual.lastVersionId) : null
       if (v) {
         hero = { kind: 'filled', name: habitual.coffee.name, method: v.method, subtitle: versionSubtitle(v), locked: v.status === 'locked', params: v.params, href: brewHref(v.id) }
       } else {
@@ -83,7 +87,7 @@ export function HomeScreen() {
       }
     } else {
       const last = [...sessions].reverse().find((s) => s.outcome === 'completed')
-      const v = last ? await getRecipeVersion(db, last.versionId) : null
+      const v = last ? await nextVersionFor(db, last.versionId) : null
       if (v) hero = { kind: 'filled', name: v.name, method: v.method, subtitle: versionSubtitle(v), locked: v.status === 'locked', params: v.params, href: brewHref(v.id) }
     }
 
@@ -95,9 +99,11 @@ export function HomeScreen() {
       if (recipe && result.kind !== 'discard') resume = { recipe, result }
       else await db.activeBrew.delete('current')
     }
+    const p = await pendingEvaluation(db, now)
     setData({
       dateText: dateLabel(now),
       hero,
+      pending: p ? { sessionId: p.id, method: p.method } : null,
       stats: monthlyStats(sessions.filter((s) => s.finishedAtEpochMs >= startOfMonth(now)), now),
       coffees,
       resume,
@@ -112,7 +118,7 @@ export function HomeScreen() {
 
   if (!data) return <main className="min-h-dvh" aria-busy="true" />
 
-  const { stats, resume, hero, coffees } = data
+  const { stats, resume, hero, coffees, pending } = data
   const totals = stockTotals(coffees)
   const hasStock = coffees.some((s) => !s.coffee.archived && s.activeBag)
   const recent = recentCoffees(coffees)
@@ -171,6 +177,19 @@ export function HomeScreen() {
               </button>
             </Banner>
           ) : null
+        ) : null}
+
+        {pending && !resume ? (
+          <Banner
+            tone="neutral"
+            action={
+              <Button variant="tertiary" size="md" onClick={() => router.push(`/evaluar?s=${encodeURIComponent(pending.sessionId)}`)}>
+                Evaluar
+              </Button>
+            }
+          >
+            Tu último {METHOD_LABEL[pending.method]} está sin evaluar.
+          </Banner>
         ) : null}
 
         {hero.kind === 'filled' ? (

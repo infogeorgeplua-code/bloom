@@ -542,6 +542,15 @@ export function clicksFromDescriptor(descriptor: string, grinder: Grinder | null
 
 ### 5.4 `brew-adjust` (fase 4) — reglas R1–R8 de product §10.3
 
+> **Implementado (v1.3, 5 nov 2026)** en `src/features/evaluation/`: `adjust-tables.ts` (DIAGNOSIS, pasos, límites, textos), `brew-adjust.ts` (lógica pura) y `lib/evaluation-db.ts` (IndexedDB). Diferencias con el boceto de abajo:
+> - `grindClicks` se expresa en **pasos del molino** (1 paso = `clicksPerStep` posiciones; en el LEBURRY 2). "Medio click" = medio paso: existe si da posiciones enteras; si no, se usa la otra candidata.
+> - **R1 (S-18):** bloqueada → la más nueva **sin evaluar si es una propuesta aceptada** → mejor promedio → la más nueva. Sin la regla del medio, "Usar V2 la próxima vez" no tendría efecto (V2 aún no tiene calificación). El orden "más nueva" usa el número de versión, no la fecha.
+> - Resultado extra `no_option`: ninguna candidata aplica con tu equipo o los límites (sin molino, temperatura en el techo de ebullición, etc.).
+> - Límites: temperatura con `clampTempC` de P-14.1 (método + ebullición local); espresso según P-27; agitación solo V60 (P-27).
+> - Una versión revertida se marca al guardar la evaluación; la versión nueva solo existe si tocas "Usar Vn la próxima vez". `adjustMeta` (síntomas, nivel, cambios, variables probadas) viaja en la versión para que R6 elija la otra candidata.
+> - Textos del porqué sin promesas de sabor (P-14.1 principio 6): "Más temperatura extrae un poco más del café."
+> - Pendientes: P-26 (R5 con 1 o 2 cambios), P-27, P-28.
+
 ```ts
 export type Symptom = 'muy_acido' | 'muy_amargo' | 'seco_final' | 'vacio' | 'astringente'
                     | 'plano' | 'muy_intenso' | 'falta_dulzor' | 'falta_cuerpo'
@@ -608,7 +617,7 @@ export function averageRating(versionId: string, brews: EvaluatedBrew[]): number
 
 > Ver S-17 (tamaño del paso de R3 y molinos sin ½ click).
 
-**Explicación del ajuste:** `reason` la redacta una plantilla determinista por `(variable, signo)` (ej.: "Un poco más de temperatura extrae más azúcares sin tocar el cuerpo."). En fase 6 el LLM puede reescribirla, pero **no** puede cambiar `changes` (§6.5).
+**Explicación del ajuste:** `reason` la redacta una plantilla determinista por `(variable, signo)` (ej.: "Más temperatura extrae un poco más del café."; sin promesas de sabor, P-14.1). En fase 6 el LLM puede reescribirla, pero **no** puede cambiar `changes` (§6.5).
 
 ### 5.5 `inventory` (D-09; lógica en fase 2–4, vinculada a bolsas en fase 5)
 
@@ -1078,9 +1087,15 @@ Registro de clientes con consentimiento (D-04) · Coffee Lab · "¿Por qué esta
 
 ## 12. Changelog
 
+### v1.3 (5 nov 2026) — fase 4
+- Motor de recetas con **P-14.1** (reemplaza P-14): una variable por objetivo, evidencia por regla, ratio en %, techo por ebullición local, `engineVersion` en cada V1.
+- Evaluación 1–5 + síntomas + motor de ajuste R1–R8 (§5.4); ruta `/evaluar?s=` precacheada; versiones, revertir y bloquear en IndexedDB (`RecipeVersion.adjustMeta`, `lockedAtEpochMs`; sin cambio de esquema Dexie).
+- Home: evaluación pendiente ("Más tarde") y hero con R1. Perfil de café: historial de versiones (product §10.5).
+- `ensureSeed` conserva estado y fecha de las recetas base al actualizar el seed.
+
 ### v1.2 (4 nov 2026) — fase 3
 - Dexie v2 (cafés, bolsas, ajustes) e inventario local adelantado (P-25); §5.9 nuevo.
-- `recipe-engine` con tablas de P-14 (propuesta por confirmar) en `features/recipes/engine-tables.ts`; molino LEBURRY.
+- `recipe-engine` con tablas de P-14 (reemplazadas por P-14.1 en v1.3) en `features/recipes/engine-tables.ts`; molino LEBURRY.
 - Rutas: `/stock`, `/cafe`, `/cafe/nuevo`, `/hacer-cafe`, `/brew?v=`, `/setup`, todas precacheadas.
 - `SerwistProvider` con `reloadOnOnline={false}`: volver a tener señal no recarga la página (cortaría un brew).
 

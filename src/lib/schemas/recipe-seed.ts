@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { AdjustMeta } from './evaluation'
 
 /** Íconos de paso permitidos (DS §2.8). Nombres de Lucide en kebab-case. */
 export const StepIcon = z.enum(['list-checks', 'droplet', 'citrus', 'bean', 'sparkles', 'hourglass', 'gauge'])
@@ -103,6 +104,11 @@ export const RecipeVersion = z.object({
   name: z.string().min(1),
   params: RecipeParams,
   traceability: Traceability,
+  /** Tablas con que el motor generó la V1 ("P-14.1"); null en seed y en versiones previas a P-14.1 */
+  engineVersion: z.string().nullable().optional(),
+  /** Solo en versiones creadas por el motor de ajuste (fase 4) */
+  adjustMeta: AdjustMeta.nullable().optional(),
+  lockedAtEpochMs: z.number().nullable().optional(),
 })
 export type RecipeVersion = z.infer<typeof RecipeVersion>
 

@@ -35,6 +35,8 @@ export interface BrewState {
   lastStepIndex: number | null
   /** Tiempo total al terminar */
   finishedElapsedMs: number | null
+  /** Brew guardado al terminar: la evaluación lo califica (fase 4) */
+  sessionId: string | null
 }
 
 export type BrewEvent =
@@ -77,6 +79,7 @@ export const initialState = (): BrewState => ({
   warnedStepIds: [],
   lastStepIndex: null,
   finishedElapsedMs: null,
+  sessionId: null,
 })
 
 // ── Pasos ────────────────────────────────────────────────────────────────
@@ -155,7 +158,7 @@ function rebase(s: BrewState, nowEpochMs: number, targetElapsed: number): BrewSt
 
 function finish(s: BrewState, ctx: BrewContext, nowEpochMs: number, sessionId: string) {
   const elapsed = currentElapsed(s, nowEpochMs)
-  const state: BrewState = { ...s, status: 'finished', pausedAtEpochMs: null, finishedElapsedMs: elapsed }
+  const state: BrewState = { ...s, status: 'finished', pausedAtEpochMs: null, finishedElapsedMs: elapsed, sessionId }
   const session: BrewSessionRecord = {
     id: sessionId,
     versionId: s.versionId ?? '',

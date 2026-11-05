@@ -93,7 +93,16 @@ export async function ensureSeed(db: BloomDB, nowEpochMs: number): Promise<void>
   const current = await db.meta.get('seedVersion')
   if (current?.value === SEED_VERSION) return
   await db.transaction('rw', db.recipes, db.meta, async () => {
-    await db.recipes.bulkPut(seedRecipes().map((r) => ({ ...r, createdAtEpochMs: nowEpochMs })))
+    // Fase 4: conserva lo que es tuyo de una receta base (bloqueo/revertida y fecha de alta)
+    const existing = new Map((await db.recipes.bulkGet(seedRecipes().map((r) => r.id))).filter(Boolean).map((r) => [r!.id, r!]))
+    await db.recipes.bulkPut(
+      seedRecipes().map((r) => {
+        const old = existing.get(r.id)
+        return old
+          ? { ...r, status: old.status, lockedAtEpochMs: old.lockedAtEpochMs ?? null, createdAtEpochMs: old.createdAtEpochMs }
+          : { ...r, createdAtEpochMs: nowEpochMs }
+      }),
+    )
     await db.meta.put({ key: 'seedVersion', value: SEED_VERSION })
     await db.meta.put({ key: 'schemaVersion', value: 2 })
   })

@@ -48,7 +48,7 @@ export function MakeCoffeeScreen() {
   const [method, setMethod] = useState<Method | null>(null)
   const [objective, setObjective] = useState<Objective>('equilibrado')
   const [preference, setPreference] = useState<Preference | null>(null)
-  const [existing, setExisting] = useState<{ id: string; number: number; params: Params } | null>(null)
+  const [existing, setExisting] = useState<{ id: string; number: number; params: Params; locked: boolean } | null>(null)
   const [starting, setStarting] = useState(false)
   const firstStep: Step = preselected ? 2 : 1
 
@@ -97,7 +97,7 @@ export function MakeCoffeeScreen() {
     let cancelled = false
     void (async () => {
       const v = await findActiveVersion(getDb(), coffeeId, method, objective)
-      if (!cancelled) setExisting(v ? { id: v.id, number: v.number, params: v.params } : null)
+      if (!cancelled) setExisting(v ? { id: v.id, number: v.number, params: v.params, locked: v.status === 'locked' } : null)
     })()
     return () => {
       cancelled = true
@@ -274,7 +274,11 @@ export function MakeCoffeeScreen() {
 
       <section className="flex flex-col gap-3">
         <p className="t-body-lg text-fg">
-          {existing ? 'Partes de tu versión guardada de esta receta: el motor no la regenera.' : output.priority}
+          {existing
+            ? existing.locked
+              ? 'Tu receta bloqueada: es tu punto de partida y Bloom no la ajusta sola.'
+              : 'Partes de tu mejor versión de esta receta. Tus calificaciones la siguen ajustando.'
+            : output.priority}
         </p>
         {changes.length ? (
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
@@ -285,6 +289,10 @@ export function MakeCoffeeScreen() {
             ))}
           </ul>
         ) : null}
+        {!existing && output.objectiveEvidence === 'heuristica' ? (
+          <p className="t-caption text-fg-3">Punto de partida: tu primera cata lo afina.</p>
+        ) : null}
+        {!existing && output.objectiveEvidence === 'hipotesis' ? <p className="t-caption text-warning">Experimento</p> : null}
         <p className="t-caption flex flex-wrap items-center gap-2 text-fg-3">
           <TrustBadge status={ENGINE_TRACEABILITY.status} inline />
           {ENGINE_TRACEABILITY.label}

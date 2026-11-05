@@ -13,13 +13,16 @@ export interface RatingScaleProps {
   className?: string
 }
 
-const LEVELS: Array<{ level: RatingLevel; label: string }> = [
-  { level: 1, label: 'No me gustó' },
-  { level: 2, label: 'Le falta algo' },
-  { level: 3, label: 'Quedó bien' },
-  { level: 4, label: 'Muy rica' },
-  { level: 5, label: 'De campeonato' },
-]
+/** Copy de los 5 niveles (product §10.1, D-11) */
+export const RATING_LABEL: Record<RatingLevel, string> = {
+  1: 'No me gustó',
+  2: 'Le falta algo',
+  3: 'Quedó bien',
+  4: 'Muy rica',
+  5: 'De campeonato',
+}
+
+const LEVELS = ([1, 2, 3, 4, 5] as const).map((level) => ({ level, label: RATING_LABEL[level] }))
 
 /** Pregunta de cierre "¿Qué tal esta receta?" — lista vertical, sin números visibles (D-11). */
 export function RatingScale({ value, onChange, className }: RatingScaleProps) {
