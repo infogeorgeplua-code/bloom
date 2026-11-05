@@ -544,12 +544,13 @@ export function clicksFromDescriptor(descriptor: string, grinder: Grinder | null
 
 > **Implementado (v1.3, 5 nov 2026)** en `src/features/evaluation/`: `adjust-tables.ts` (DIAGNOSIS, pasos, límites, textos), `brew-adjust.ts` (lógica pura) y `lib/evaluation-db.ts` (IndexedDB). Diferencias con el boceto de abajo:
 > - `grindClicks` se expresa en **pasos del molino** (1 paso = `clicksPerStep` posiciones; en el LEBURRY 2). "Medio click" = medio paso: existe si da posiciones enteras; si no, se usa la otra candidata.
-> - **R1 (S-18):** bloqueada → la más nueva **sin evaluar si es una propuesta aceptada** → mejor promedio → la más nueva. Sin la regla del medio, "Usar V2 la próxima vez" no tendría efecto (V2 aún no tiene calificación). El orden "más nueva" usa el número de versión, no la fecha.
+> - **R1 (P-26):** bloqueada → la versión vigente (la más nueva que no revertiste). Ya no elige sola por promedio: nada cambia sin tu aprobación. El orden usa el número de versión, no la fecha.
+> - **R5 (P-26):** un solo cambio por taza. **R6:** revertir se aprueba ("Usar V3" · "Volver a V1" · "Seguir con V2"); `evaluateBrew` no modifica recetas.
 > - Resultado extra `no_option`: ninguna candidata aplica con tu equipo o los límites (sin molino, temperatura en el techo de ebullición, etc.).
 > - Límites: temperatura con `clampTempC` de P-14.1 (método + ebullición local); espresso según P-27; agitación solo V60 (P-27).
 > - Una versión revertida se marca al guardar la evaluación; la versión nueva solo existe si tocas "Usar Vn la próxima vez". `adjustMeta` (síntomas, nivel, cambios, variables probadas) viaja en la versión para que R6 elija la otra candidata.
 > - Textos del porqué sin promesas de sabor (P-14.1 principio 6): "Más temperatura extrae un poco más del café."
-> - Pendientes: P-26 (R5 con 1 o 2 cambios), P-27, P-28.
+> - P-26, P-27 y P-28 resueltos por George el 5 nov.
 
 ```ts
 export type Symptom = 'muy_acido' | 'muy_amargo' | 'seco_final' | 'vacio' | 'astringente'

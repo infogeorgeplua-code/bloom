@@ -128,7 +128,7 @@ describe('DIAGNOSIS (product §10.2): cada fila, nivel 2 = paso completo', () =>
     expect(one('muy_intenso')).toMatchObject({ variable: 'waterG', after: 250 })
     expect(one('plano')).toMatchObject({ variable: 'bloomS', before: 40, after: 50, stepId: 'v60-bloom' })
     expect(one('falta_cuerpo')).toMatchObject({ variable: 'agitation', after: AGITATION_TEXT.agitate_pour2, stepId: 'v60-pour2' })
-    // El vertido final del seed ya es "sin agitar": la candidata 1 no aplica → −1 °C
+    // El vertido final del seed ya es "sin girar el dripper ni remover": la candidata 1 no aplica → −1 °C
     expect(one('seco_final')).toMatchObject({ variable: 'tempC', after: 91 })
   })
 
@@ -176,23 +176,22 @@ describe('R4 · nivel 3: un cambio a medio paso', () => {
   })
 })
 
-describe('R5 · nivel 1–2: hasta 2 cambios, sin repetir variable', () => {
+describe('R5 · nivel 1–2: paso completo, UN cambio por taza (P-26)', () => {
   const v = version()
-  it('dos síntomas, dos variables', () => {
+  it('dos síntomas: se ajusta solo el primero', () => {
     const o = run(v, [v], [brew(v, 1, ['muy_amargo', 'muy_intenso'])])
-    expect(o.kind === 'propose' && o.changes.map((c) => [c.variable, c.after])).toEqual([['tempC', 91], ['waterG', 250]])
+    expect(o.kind === 'propose' && o.changes.map((c) => [c.variable, c.after])).toEqual([['tempC', 91]])
+    expect(o.kind === 'propose' && o.meta.symptoms).toEqual(['muy_amargo'])
   })
-  it('dos síntomas sobre la misma variable: el segundo usa su candidata 2', () => {
-    const o = run(v, [v], [brew(v, 2, ['falta_dulzor', 'muy_acido'])])
-    expect(o.kind === 'propose' && o.changes.map((c) => [c.variable, c.after])).toEqual([['tempC', 93], ['grindClicks', 16]])
-  })
-  it('síntomas opuestos (ácido y amargo): no se anulan entre sí', () => {
-    const o = run(v, [v], [brew(v, 2, ['muy_acido', 'muy_amargo'])])
-    expect(o.kind === 'propose' && o.changes.map((c) => [c.variable, c.after])).toEqual([['tempC', 93], ['grindClicks', 20]])
+  it('si el primer síntoma no tiene candidata posible, se usa el segundo', () => {
+    const hot = version({ params: { tempC: 96, grind: { descriptor: 'fina', clicks: 1 } } as never })
+    const o = run(hot, [hot], [brew(hot, 2, ['muy_acido', 'muy_intenso'])])
+    expect(o.kind === 'propose' && o.changes.map((c) => [c.variable, c.after])).toEqual([['waterG', 250]])
+    expect(o.kind === 'propose' && o.meta.symptoms).toEqual(['muy_intenso'])
   })
   it('un tercer síntoma se ignora', () => {
     const o = run(v, [v], [brew(v, 2, ['muy_amargo', 'muy_intenso', 'plano'])])
-    expect(o.kind === 'propose' && o.changes).toHaveLength(2)
+    expect(o.kind === 'propose' && o.changes).toHaveLength(1)
   })
 })
 
@@ -316,12 +315,12 @@ describe('Espresso (P-27)', () => {
 })
 
 describe('R1 · bestStart', () => {
-  it('mejor promedio; empate → la más reciente; sin versiones → null', () => {
+  it('la versión vigente (la más nueva no revertida), aunque otra tenga mejor promedio (P-26)', () => {
     const a = version()
     const b = version({ number: 2 })
     expect(bestStart([], [])).toBeNull()
-    expect(bestStart([a, b], [brew(a, 4), brew(b, 3)])?.id).toBe(a.id)
-    expect(bestStart([a, b], [brew(a, 4), brew(b, 4)])?.id).toBe(b.id)
+    expect(bestStart([a, b], [brew(a, 4), brew(b, 3)])?.id).toBe(b.id)
+    expect(bestStart([a, { ...b, status: 'reverted' }], [brew(a, 4), brew(b, 3)])?.id).toBe(a.id)
   })
   it('una V1 sin evaluar sigue siendo el punto de partida', () => {
     const a = version()

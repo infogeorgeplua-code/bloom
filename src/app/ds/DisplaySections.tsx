@@ -414,7 +414,7 @@ const BLOOM_INFO = [
     value: 'Este paso hidrata el café y libera el CO₂ del tueste. Sienta las bases de una extracción pareja y mejora el dulzor.',
     emphasis: 'primary' as const,
   },
-  { label: 'Técnica', value: 'Vierte en espiral rápida y agita suavemente 3 veces.' },
+  { label: 'Técnica', value: 'Vierte en espiral rápida y gira suavemente el dripper 3 veces.' },
   { label: 'Después', value: 'Primer vertido → 140 g de agua' },
 ]
 

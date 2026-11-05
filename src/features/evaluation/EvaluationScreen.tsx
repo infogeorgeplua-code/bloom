@@ -12,7 +12,7 @@ import { Banner, BottomSheet, Button, Chip, ChipGrid, RATING_LABEL, RatingScale,
 import { FlowShell } from '@/features/shell/AppShell'
 import { todayISO } from '@/features/coffees/coffee-form'
 import { getRecipeVersion, getSetup } from '@/lib/library-db'
-import { acceptProposal, evaluateBrew, lockVersion, unlockVersion, type EvaluationResult } from '@/lib/evaluation-db'
+import { acceptProposal, evaluateBrew, lockVersion, revertVersion, unlockVersion, type EvaluationResult } from '@/lib/evaluation-db'
 import { getDb } from '@/lib/offline-db'
 import type { RatingLevel, Symptom } from '@/lib/schemas/evaluation'
 import type { RecipeVersion } from '@/lib/schemas/recipe-seed'
@@ -283,22 +283,47 @@ export function EvaluationScreen() {
               loading={busy}
               onClick={async () => {
                 setBusy(true)
-                await acceptProposal(getDb(), { base, changes: o.changes, meta })
+                await acceptProposal(getDb(), {
+                  base,
+                  changes: o.changes,
+                  meta,
+                  revertVersionId: o.kind === 'revert' ? o.revertedVersionId : undefined,
+                })
                 home()
               }}
             >
               {`Usar V${result?.nextNumber ?? base.number + 1} la próxima vez`}
             </Button>
-            <Button variant="secondary" size="lg" fullWidth disabled={busy} onClick={home}>
-              {`Mantener V${base.number}`}
-            </Button>
+            {o.kind === 'revert' ? (
+              <>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  disabled={busy}
+                  onClick={async () => {
+                    await revertVersion(getDb(), o.revertedVersionId)
+                    home()
+                  }}
+                >
+                  {`Volver a V${base.number}`}
+                </Button>
+                <Button variant="tertiary" size="md" fullWidth disabled={busy} onClick={home}>
+                  {`Seguir con V${recipe.number}`}
+                </Button>
+              </>
+            ) : (
+              <Button variant="secondary" size="lg" fullWidth disabled={busy} onClick={home}>
+                {`Mantener V${base.number}`}
+              </Button>
+            )}
           </div>
         }
       >
         <p className="t-label text-fg-3">Para la próxima taza</p>
         {o.kind === 'revert' ? (
           <Banner tone="neutral">
-            V{recipe.number} salió peor que V{base.number}. Volvemos a V{base.number} y probamos otra cosa.
+            V{recipe.number} salió peor que V{base.number}. Te propongo volver a V{base.number} y probar otra cosa.
           </Banner>
         ) : null}
         <p className="t-body text-fg-2">Reportaste: {reportedText(rating ?? 3, symptoms)}</p>
@@ -317,23 +342,50 @@ export function EvaluationScreen() {
             </p>
           ))}
         </div>
+        {o.kind === 'propose' && symptoms.length > o.changes.length ? (
+          <p className="t-caption text-fg-3">Un cambio por taza: así la próxima te dice si funcionó.</p>
+        ) : null}
         <p className="t-caption text-fg-3">{basedOnText(result?.evaluatedCount ?? 1)}</p>
+      </FlowShell>
+    )
+  }
+
+  // R6 sin otra variable que probar: volver también se aprueba
+  if (o.kind === 'revert') {
+    const revertedId = o.revertedVersionId
+    return (
+      <FlowShell
+        header={header}
+        footer={
+          <div className="flex flex-col gap-2">
+            <Button
+              size="lg"
+              fullWidth
+              onClick={async () => {
+                await revertVersion(getDb(), revertedId)
+                home()
+              }}
+            >
+              {`Volver a V${o.base.number}`}
+            </Button>
+            <Button variant="tertiary" size="md" fullWidth onClick={home}>
+              {`Seguir con V${recipe.number}`}
+            </Button>
+          </div>
+        }
+      >
+        <h1 className="t-title-lg text-fg">Guardado.</h1>
+        <Banner tone="neutral">
+          V{recipe.number} salió peor que V{o.base.number}.
+        </Banner>
+        <p className="t-body text-fg-2">Ya probamos las dos variables de la tabla para este síntoma. Te propongo volver a V{o.base.number}.</p>
       </FlowShell>
     )
   }
 
   // Sin propuesta: R8, pista (R3), revertida sin otra variable o sin opción con tu equipo
   let body: React.ReactNode
-  if (o.kind === 'revert') {
-    body = (
-      <>
-        <Banner tone="neutral">
-          V{recipe.number} salió peor que V{o.base.number}. Volvemos a V{o.base.number}.
-        </Banner>
-        <p className="t-body text-fg-2">Ya probamos las dos variables de la tabla para este síntoma. La próxima cata nos dice cómo seguir.</p>
-      </>
-    )
-  } else if (o.kind === 'keep' && o.hint) {
+  if (o.kind === 'keep' && o.hint) {
     body = (
       <p className="t-body text-fg-2">
         Anoté {symptomList([o.hint])} como pista: si se repite en tu próxima taza de esta receta, te propongo un cambio.

@@ -287,8 +287,8 @@ Al tocar "Listo" en el último paso de preparación: 3-2-1 y arranca el bloom.
              del tueste. Sienta las bases de una
              extracción pareja y mejora el dulzor.
   ───────────────────────────────────────
-  TÉCNICA    Vierte en espiral rápida y agita
-             suavemente 3 veces.
+  TÉCNICA    Vierte en espiral rápida y gira
+             suavemente el dripper 3 veces.
   ───────────────────────────────────────
   DESPUÉS    Primer vertido → 140 g de agua
 
@@ -362,7 +362,7 @@ PASO 1 — PREPARA                                  [prep]
 PASO 2 — BLOOM                                    [pour]
   Meta: vierte hasta 45 g
   Duración: 40 s
-  Técnica: espiral rápida, luego agita suavemente 3 veces
+  Técnica: espiral rápida, luego gira suavemente el dripper 3 veces
 
 PASO 3 — PRIMER VERTIDO                           [pour]
   Meta: 140 g · Referencia: 0:45 – 1:10
@@ -374,7 +374,7 @@ PASO 4 — SEGUNDO VERTIDO                          [pour]
 
 PASO 5 — VERTIDO FINAL                            [pour]
   Meta: 240 g · Referencia: 2:10 – 2:30
-  Técnica: espiral exterior sin agitar
+  Técnica: espiral exterior, sin girar el dripper ni remover el café
 
 PASO 6 — DECANTACIÓN                              [wait]
   No tocar. Hasta 3:00 total.
@@ -389,13 +389,13 @@ PASO 1 — PREPARA                                  [prep]
   Coloca y enjuaga el filtro, arma en posición invertida, tara
 
 PASO 2 — BLOOM RÁPIDO                             [pour]
-  Meta: 30 g · Duración: 20 s · Agita 5 veces
+  Meta: 30 g · Duración: 20 s · Remueve el café con la paleta 5 veces
 
 PASO 3 — VERTIDO PRINCIPAL                        [pour]
-  Meta: 200 g · Referencia: 0:30 – 0:50 · Agita 3 veces en cruz
+  Meta: 200 g · Referencia: 0:30 – 0:50 · Remueve con la paleta 3 veces, en cruz
 
 PASO 4 — ESPERA                                   [wait]
-  No agitar. Hasta 1:30 total.
+  No remover. Hasta 1:30 en total.
 
 PASO 5 — PRESIONA                                 [press]
   30 s de presión pareja. Detente al primer silbido de aire.

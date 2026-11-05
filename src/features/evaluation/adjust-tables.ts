@@ -71,8 +71,8 @@ export const MIN_BLOOM_S = 10
  */
 export const AGITATION_METHODS: Method[] = ['v60']
 export const AGITATION_TEXT: Record<Agitation, string> = {
-  no_agitate_last: 'Vierte lento y al centro, sin agitar.',
-  agitate_pour2: 'Al terminar el vertido, agita suave la cama de café una vez.',
+  no_agitate_last: 'Vierte lento y al centro, sin girar el dripper ni remover el café.',
+  agitate_pour2: 'Al terminar de verter, gira suavemente el dripper una vez.',
 }
 
 /** "Por qué" del cambio: plantilla por variable y signo (SDD §5.4). Sin promesas de sabor. */
@@ -85,8 +85,8 @@ export const REASON_TEXT: Record<`${AdjustVariable}:${'up' | 'down'}`, string> =
   'waterG:down': 'Menos agua por gramo: la taza sale más concentrada.',
   'bloomS:up': 'Un bloom más largo deja salir más gas antes de los vertidos.',
   'bloomS:down': 'Un bloom más corto adelanta los vertidos.',
-  'agitation:up': 'Agitar en el segundo vertido mueve más la cama de café.',
-  'agitation:down': 'Sin agitar al final, el último vertido extrae menos.',
+  'agitation:up': 'Girar el dripper en el segundo vertido mueve más la cama de café.',
+  'agitation:down': 'Sin mover el café al final, el último vertido extrae menos.',
 }
 
 export const VARIABLE_LABEL: Record<AdjustVariable, string> = {

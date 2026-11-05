@@ -45,11 +45,13 @@ Backend y sync (fase 5), Diario (P-01), señal de aprendizaje en Home (P-04), LL
   IndexedDB (`evaluation-db.test.ts`) y e2e Pixel (`fase-4.spec.ts`). ✅
 - Una prueba por fila de DIAGNOSIS y de cada regla R1–R8, límites y molino sin medio paso. ✅
 - `npm run check` y e2e en verde; axe sin violaciones en `/evaluar`. ✅
-- George prueba en el teléfono y responde P-26, P-27 y P-28.
+- George responde P-26, P-27 y P-28. ✅
+- George prueba en el teléfono.
 
 ## Registro
 - 5 nov 2026: construida. P-14.1 integrada; motor de ajuste, evaluación, versiones y bloqueo.
   Corrección de paso: preparar una receta base sin pasar antes por el Home dejaba la V2 con
   número 1 y el Home la ocultaba; ahora el seed se carga antes de evaluar, R1 ordena por número
   de versión y `ensureSeed` conserva bloqueo y fecha de las recetas base.
-- Falta: prueba en el teléfono; respuestas a P-26, P-27 y P-28.
+- 5 nov 2026: George responde P-26 (un cambio por taza; nada cambia sin aprobación, también revertir y R1), P-27 (técnica explícita: girar el dripper / remover con la paleta) y P-28 (Intensidad solo en "Para alguien más" y Lab/Diario). Aplicado.
+- Falta: prueba en el teléfono.

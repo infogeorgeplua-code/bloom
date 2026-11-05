@@ -55,8 +55,8 @@ export interface EvaluationResult {
 }
 
 /**
- * Guarda la calificación del brew y corre el motor de ajuste. Si la versión salió peor que su
- * padre (R6) queda revertida aquí mismo; la versión nueva solo se crea si aceptas (acceptProposal).
+ * Guarda la calificación del brew y corre el motor de ajuste. No cambia ninguna receta (P-26):
+ * revertir (R6), crear la versión nueva, bloquear o desbloquear solo pasa si lo apruebas.
  */
 export async function evaluateBrew(
   db: BloomDB,
@@ -82,9 +82,6 @@ export async function evaluateBrew(
     roastDateISO: coffee?.roastDateISO ?? null,
     todayISO: args.todayISO,
   })
-  if (outcome.kind === 'revert' && (await db.recipes.get(outcome.revertedVersionId))) {
-    await db.recipes.update(outcome.revertedVersionId, { status: 'reverted' })
-  }
   return {
     outcome,
     current,
@@ -93,13 +90,22 @@ export async function evaluateBrew(
   }
 }
 
-/** "Usar Vn la próxima vez": crea la versión nueva, hija de la base, con los cambios aplicados */
+/** R6 aprobado ("Volver a Vn"): la versión que salió peor queda revertida y deja de competir en R1 */
+export async function revertVersion(db: BloomDB, versionId: string): Promise<void> {
+  await db.recipes.update(versionId, { status: 'reverted' })
+}
+
+/**
+ * "Usar Vn la próxima vez": crea la versión nueva, hija de la base, con los cambios aplicados.
+ * Si la propuesta viene de R6, `revertVersionId` es la versión que salió peor.
+ */
 export async function acceptProposal(
   db: BloomDB,
-  args: { base: AdjustVersion; changes: AdjustChange[]; meta: AdjustMeta; nowEpochMs?: number },
+  args: { base: AdjustVersion; changes: AdjustChange[]; meta: AdjustMeta; revertVersionId?: string; nowEpochMs?: number },
 ): Promise<string> {
   const { base, changes, meta, nowEpochMs = Date.now() } = args
   await ensureSeed(db, nowEpochMs)
+  if (args.revertVersionId) await revertVersion(db, args.revertVersionId)
   const siblings = await db.recipes.where('recipeId').equals(base.recipeId).toArray()
   const id = uuid()
   await db.recipes.add({

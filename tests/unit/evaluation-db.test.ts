@@ -9,6 +9,7 @@ import {
   lockVersion,
   nextVersionFor,
   pendingEvaluation,
+  revertVersion,
   unlockVersion,
 } from '@/lib/evaluation-db'
 import { generateRecipe } from '@/features/recipes/recipe-engine'
@@ -65,14 +66,15 @@ describe('evaluación de punta a punta en IndexedDB (V1 → V2 revertida → V3 
     expect((await nextVersionFor(db, v1))?.id).toBe(v2)
     expect((await findActiveVersion(db, coffeeId, 'v60', 'equilibrado'))?.id).toBe(v2)
 
-    // V2 peor → revertida; la propuesta es medio paso más fino (1 posición del LEBURRY)
+    // V2 peor → propone volver a V1 y probar medio paso más fino (1 posición del LEBURRY).
+    // Nada cambia sin aprobación (P-26): V2 sigue activa hasta que eliges.
     const r2 = await brewAndRate(v2, 2, ['muy_amargo'])
     expect(r2?.outcome.kind).toBe('revert')
-    expect((await db.recipes.get(v2))?.status).toBe('reverted')
+    expect((await db.recipes.get(v2))?.status).toBe('active')
     if (r2?.outcome.kind !== 'revert' || !r2.outcome.meta) return
     expect(r2.outcome.changes).toEqual([{ variable: 'grindClicks', before: 15, after: 14, stepId: null }])
-    expect((await nextVersionFor(db, v2))?.id).toBe(v1) // sin aceptar, vuelve a V1
-    const v3 = await acceptProposal(db, { base: r2.outcome.base, changes: r2.outcome.changes, meta: r2.outcome.meta, nowEpochMs: 40 })
+    const v3 = await acceptProposal(db, { base: r2.outcome.base, changes: r2.outcome.changes, meta: r2.outcome.meta, revertVersionId: v2, nowEpochMs: 40 })
+    expect((await db.recipes.get(v2))?.status).toBe('reverted')
     expect(await db.recipes.get(v3)).toMatchObject({ number: 3, parentVersionId: v1, params: { tempC: 92, grind: { clicks: 14 } } })
 
     expect((await brewAndRate(v3, 4))?.outcome).toEqual({ kind: 'keep', hint: null })
@@ -111,6 +113,19 @@ describe('evaluación de punta a punta en IndexedDB (V1 → V2 revertida → V3 
     await lockVersion(db, v2, 2)
     expect((await db.recipes.get(v1))?.status).toBe('active')
     expect((await db.recipes.get(v2))?.status).toBe('locked')
+  })
+})
+
+describe('revertir solo con aprobación (P-26)', () => {
+  it('"Volver a V1" revierte; "Seguir con V2" no cambia nada', async () => {
+    const { v1 } = await setupCoffee()
+    const r1 = await brewAndRate(v1, 3, ['falta_dulzor'])
+    if (r1?.outcome.kind !== 'propose') throw new Error('se esperaba propuesta')
+    const v2 = await acceptProposal(db, { base: r1.outcome.base, changes: r1.outcome.changes, meta: r1.outcome.meta })
+    await brewAndRate(v2, 1, ['muy_amargo'])
+    expect((await nextVersionFor(db, v1))?.id).toBe(v2) // sigue con V2 mientras no elijas
+    await revertVersion(db, v2)
+    expect((await nextVersionFor(db, v1))?.id).toBe(v1)
   })
 })
 

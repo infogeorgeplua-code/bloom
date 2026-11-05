@@ -54,29 +54,17 @@ export function averageRating(versionId: string, brews: EvaluatedBrew[]): number
 }
 
 /**
- * R1 · Mejor punto de partida. Bloqueada si existe; si la versión más nueva aún no se probó
- * (una propuesta que aceptaste), esa; si no, la de mejor promedio; empate → la más reciente.
- * Las revertidas no compiten.
+ * R1 · Punto de partida. La bloqueada si existe; si no, la versión vigente: la más nueva que no
+ * revertiste. Nada cambia sin tu aprobación (P-26): una versión nueva existe solo si la aceptaste
+ * y una peor deja de usarse solo si apruebas volver. `brews` queda para futuras reglas.
  */
 export function bestStart(versions: AdjustVersion[], brews: EvaluatedBrew[]): AdjustVersion | null {
+  void brews
   const live = versions.filter((v) => v.status !== 'reverted')
   if (!live.length) return null
   // El número de versión crece dentro de la receta: ordena mejor que la fecha (el seed se reescribe)
-  const newestFirst = [...live].sort((a, b) => b.number - a.number || b.createdAtEpochMs - a.createdAtEpochMs)
-  const locked = newestFirst.find((v) => v.status === 'locked')
-  if (locked) return locked
-  const newest = newestFirst[0]!
-  if (newest.parentVersionId && averageRating(newest.id, brews) === null) return newest
-  let best = newest
-  let bestAvg = averageRating(newest.id, brews) ?? -1
-  for (const v of newestFirst) {
-    const avg = averageRating(v.id, brews) ?? -1
-    if (avg > bestAvg) {
-      best = v
-      bestAvg = avg
-    }
-  }
-  return best
+  const newestFirst = [...live].sort((x, y) => y.number - x.number || y.createdAtEpochMs - x.createdAtEpochMs)
+  return newestFirst.find((v) => v.status === 'locked') ?? newestFirst[0]!
 }
 
 export function reasonFor(change: AdjustChange): string {
@@ -138,7 +126,9 @@ export function materialize(c: Candidate, half: boolean, params: RecipeParams, c
       const step = c.mode === 'no_agitate_last' ? ps[ps.length - 1] : ps[2]
       if (!step) return null
       const before = step.technique ?? ''
-      const already = c.mode === 'no_agitate_last' ? /sin agitar/i.test(before) : /agita/i.test(before) && !/sin agitar/i.test(before)
+      // La técnica dice qué se mueve: "gira el dripper" / "remueve el café"; "sin girar… ni remover" = quieto
+      const still = /sin (girar|remover|agitar)/i.test(before)
+      const already = c.mode === 'no_agitate_last' ? still : /(gira|remueve|agita)/i.test(before) && !still
       if (already) return null
       return { variable: 'agitation', before, after: AGITATION_TEXT[c.mode], stepId: step.id }
     }
@@ -229,12 +219,14 @@ export function proposeAdjustment(args: {
       if (!meta) return { kind: 'revert', revertedVersionId: current.id, base: parent, changes: [], meta: null }
       const tried = new Set<AdjustVariable>(meta.tried)
       const half = meta.ratingLevel >= 3
+      // Un cambio por taza (P-26): la otra candidata del primer síntoma que aún tenga una
       const changes: AdjustChange[] = []
       for (const s of meta.symptoms) {
         const ch = pick(s, half, parent.params, ctx, tried)
         if (ch) {
           changes.push(ch)
           tried.add(ch.variable)
+          break
         }
       }
       return {
@@ -280,18 +272,12 @@ export function proposeAdjustment(args: {
     return make('R4', [s], ch ? [ch] : [])
   }
 
-  // R5 · Ajuste (nivel 1–2): una candidata por síntoma, máximo 2 variables, sin repetir variable
-  const used = new Set<AdjustVariable>()
-  const changes: AdjustChange[] = []
-  const usedSymptoms: Symptom[] = []
+  // R5 · Ajuste (nivel 1–2): paso completo, UN cambio por taza (P-26): el del primer síntoma
+  // que tenga una candidata posible. Así la taza siguiente dice si ese cambio funcionó (R6).
   for (const s of symptoms) {
-    const ch = pick(s, false, current.params, ctx, used)
-    if (!ch) continue
-    // Si el segundo síntoma pide la misma variable, usa su candidata 2 (o se descarta)
-    changes.push(ch)
-    used.add(ch.variable)
-    usedSymptoms.push(s)
+    const ch = pick(s, false, current.params, ctx, new Set())
+    if (ch) return make('R5', [s], [ch])
   }
-  return make('R5', usedSymptoms.length ? usedSymptoms : symptoms, changes)
+  return make('R5', symptoms, [])
 }
 

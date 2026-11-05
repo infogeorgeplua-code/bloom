@@ -618,7 +618,7 @@ Lista de definición bajo el anillo. Reemplaza los bloques sueltos de propósito
 PROPÓSITO   Este paso hidrata el café y libera el CO₂ del
             tueste. Sienta las bases de una extracción pareja.
 ────────────────────────────────────────────────────────
-TÉCNICA     Vierte en espiral rápida y agita suavemente 3 veces.
+TÉCNICA     Vierte en espiral rápida y gira suavemente el dripper 3 veces.
 ────────────────────────────────────────────────────────
 DESPUÉS     Primer vertido → 140 g de agua
 ```
