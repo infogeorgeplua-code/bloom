@@ -53,5 +53,12 @@ Lee antes: `CLAUDE.md`; `docs/SDD.md` §3.6, §4, §7, §8.3, §9.5; tech §3–
 `@tanstack/react-query` y `@vercel/analytics` se agregan solo si hacen falta.
 
 ## Registro
-- 5 nov 2026: plan escrito. Docker no está instalado y no hay proyecto de Supabase todavía.
-  Espera los insumos de George.
+- 5 nov 2026: plan escrito.
+- 6 nov 2026: George entrega el proyecto Supabase, instala Docker Desktop, elige cuenta opcional con
+  enlace al correo (Gmail) y sitio https://www.bloomcoffe.com. Construido: migración aplicada al
+  proyecto (`db push`), RLS + idempotencia verificadas contra la base local (`npm run test:cloud`,
+  11/11), sync con hooks de Dexie, `/api/sync`, `/entrar`, `/auth/callback`, "Cuenta" en Setup.
+  `npm run check` (407) y e2e (26) en verde.
+- Falta (George): URL del sitio y redirecciones en Supabase Auth; variables en Vercel; revocar el
+  access token expuesto en el chat; probar en el teléfono (brew en modo avión → vuelve la señal →
+  sin duplicados).

@@ -300,6 +300,14 @@ Los pendientes P-09 a P-16 venían del log v1.0 (antes numerados P-01 a P-08, ha
 | P-27 | Espresso sin bloom ni agitación: confirmado. AeroPress sí ajusta el bloom. Toda técnica dice qué se mueve y cómo: V60 "gira suavemente el dripper", AeroPress "remueve el café con la paleta", y "sin girar el dripper ni remover el café" para quieto. Se reescribieron los textos del seed de recetas (v2) y de product §9. La agitación como ajuste sigue solo en V60. |
 | P-28 | "Intensidad" (y objetivos parecidos) **no** va en la lista principal de objetivos: se usa en "Para alguien más · Intenso" y, más adelante, en Lab/Diario. |
 
+### Resueltos por George (6 nov 2026, arranque de la fase 5)
+
+| # | Resolución |
+|---|---|
+| Fase 5 | Aprobada ("vamos con la fase 5"). Proyecto Supabase `sedzxryrkljrzosadfid`; Docker Desktop para la base local de pruebas; sitio `https://www.bloomcoffe.com`. |
+| Cuenta | **Opcional.** La app funciona igual sin cuenta y sin conexión; entrar sube lo que ya tienes en el teléfono. Entrada por enlace al correo (sirve con Gmail). "Continuar con Google" queda listo y se activa cuando haya credenciales OAuth de Google Cloud. |
+| S-19 | **Modelo del sync** (aplica tech §3–4 con un ajuste): cada fila se identifica por `(user_id, id)`, con el id que genera el teléfono. Así, reenviar la misma fila no la duplica (cumple la función de `client_uuid`) y las FKs compuestas no pueden apuntar a filas de otro usuario (P-11). Las recetas base que usas se guardan como copia tuya (`v60-base-v1`), con su estado de bloqueo. Gana el cambio más reciente con un trigger `keep_newest`. Fuera de esta migración: `research_sources`, `usage_counters`, `champion_refs` y el bucket `bag-photos` (fases 6–7). |
+
 ### P-14.1 · Tablas del motor de recetas (vigente)
 
 Principios: un objetivo mueve **una** variable en la primera taza; cada regla declara su evidencia (`mecanica` · `medida` · `heuristica` · `hipotesis`); el ratio se mueve en % relativo; la altitud de **cultivo** no mueve la temperatura y la de **preparación** pone un techo físico (ebullición local) en métodos con hervidor abierto; ningún texto promete un sabor.

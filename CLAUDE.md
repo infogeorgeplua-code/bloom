@@ -5,7 +5,7 @@ Bloom es un copiloto de café de especialidad: una PWA para Android (Chrome), en
 Su pantalla principal es Brew Mode, que acompaña cada preparación segundo a segundo y funciona sin conexión.
 Aprende de cada taza con reglas deterministas; el LLM (fase 6+) solo extrae y redacta.
 
-**Fase actual: 4 · Evaluación y aprendizaje** (aprobada el 4 nov 2026, `docs/prompts/fase-4.md`; motor de recetas con P-14.1). Siguen abiertas la prueba de 7 días de la fase 2 (`docs/qa/fase-2-dispositivo.md`) y la prueba en el teléfono de la fase 3. Fase 1 cerrada. Cambiar de fase solo cuando George lo apruebe.
+**Fase actual: 5 · Backend + sincronización** (aprobada el 6 nov 2026, `docs/prompts/fase-5.md`; Supabase con cuenta opcional). Siguen abiertas la prueba de 7 días de la fase 2 (`docs/qa/fase-2-dispositivo.md`) y las pruebas en el teléfono de las fases 3 y 4. Fase 1 cerrada. Cambiar de fase solo cuando George lo apruebe.
 
 ## Precedencia y dónde está cada cosa
 Si dos documentos chocan manda el de arriba:
@@ -28,6 +28,7 @@ npm run check        # typecheck + lint + check:hex + check:accent + check:copy 
 npm run e2e          # Playwright, perfil Pixel
 npm run e2e:drift    # deriva real del timer, 3 min
 npm run lhci         # Lighthouse a11y sobre /ds
+npm run test:cloud   # RLS + sync contra Supabase local (Docker: npx supabase start)
 ```
 Versiones fijadas en `docs/SDD.md` §1.1 (`save-exact`). No actualizar ni cambiar paquetes sin avisar.
 

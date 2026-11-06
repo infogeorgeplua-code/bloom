@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { SerwistProvider } from '@serwist/turbopack/react'
 import { appBackground } from '@/lib/brand-colors'
+import { SyncAgent } from '@/features/account/SyncAgent'
 import '@/styles/tailwind.css'
 import '@/styles/fonts.css'
 import '@/styles/base.css'
@@ -33,6 +34,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* reloadOnOnline apagado: recargar al volver la señal cortaría un brew en curso (Brew Mode no depende de la red) */}
         <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV !== 'production'} reloadOnOnline={false}>
           <div className="app-shell">{children}</div>
+          {/* Fase 5: sincroniza en segundo plano si hay sesión; sin sesión o sin red no hace nada */}
+          <SyncAgent />
         </SerwistProvider>
       </body>
     </html>

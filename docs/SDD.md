@@ -1088,6 +1088,12 @@ Registro de clientes con consentimiento (D-04) · Coffee Lab · "¿Por qué esta
 
 ## 12. Changelog
 
+### v1.4 (6 nov 2026) — fase 5
+- Supabase: migración `supabase/migrations/*_init.sql` (perfiles, cafés, bolsas, ajustes, versiones, brews, vista `bag_stock`), RLS forzada `owner_all`, FKs compuestas, LWW con trigger `keep_newest`. Clave `(user_id, id)` (S-19 en decisiones).
+- Sync: hooks de Dexie marcan cada escritura en `syncQueue`; `POST /api/sync` (Zod, 100 ops, resultado por op) aplica upserts con el JWT del usuario; bajada al primer ingreso sin pisar pendientes. Agente en segundo plano (abrir, `online`, visibilidad, cada 60 s con pendientes).
+- Cuenta opcional: `/entrar` (enlace al correo; Google listo tras credenciales), `/auth/callback` (PKCE), sección "Cuenta" en Setup.
+- Tests: `npm run test:cloud` (Docker): RLS de SDD §9.5 e idempotencia; `sync-queue.test.ts`; e2e `fase-5.spec.ts`.
+
 ### v1.3 (5 nov 2026) — fase 4
 - Motor de recetas con **P-14.1** (reemplaza P-14): una variable por objetivo, evidencia por regla, ratio en %, techo por ebullición local, `engineVersion` en cada V1.
 - Evaluación 1–5 + síntomas + motor de ajuste R1–R8 (§5.4); ruta `/evaluar?s=` precacheada; versiones, revertir y bloquear en IndexedDB (`RecipeVersion.adjustMeta`, `lockedAtEpochMs`; sin cambio de esquema Dexie).

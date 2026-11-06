@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react'
 import { SegmentedControl, Stepper, TextField, Toggle, TrustBadge } from '@/components'
 import { AppShell } from '@/features/shell/AppShell'
+import { AccountSection } from '@/features/account/AccountSection'
 import { parseNumber } from '@/features/coffees/coffee-form'
 import { METHOD_LABEL } from '@/features/home/monthly-stats'
 import { localBoilingPointC } from '@/features/recipes/engine-tables'
@@ -195,6 +196,8 @@ export function SetupScreen() {
           )}
         </p>
       </Section>
+
+      <AccountSection />
 
       <Section title="Brew Mode">
         <Toggle
